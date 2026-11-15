@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Feuille crème, coin supérieur droit corné -->
+    <path
+        android:fillColor="#FBF7EF"
+        android:pathData="M34,27 L62,27 L74,39 L74,81 L34,81 Z" />
+    <path
+        android:fillColor="#E3D8C2"
+        android:pathData="M62,27 L62,39 L74,39 Z" />
+    <!-- Portée : cinq lignes -->
+    <path
+        android:strokeColor="#23395B"
+        android:strokeWidth="0.9"
+        android:pathData="M39,50 H69 M39,54 H69 M39,58 H69 M39,62 H69 M39,66 H69" />
+    <!-- Croche cuivre : tête, hampe, crochet -->
+    <path
+        android:fillColor="#C8783E"
+        android:pathData="M46.6,64 a4.4,3.2 0 1,0 8.8,0 a4.4,3.2 0 1,0 -8.8,0 Z" />
+    <path
+        android:fillColor="#C8783E"
+        android:pathData="M54.2,42 H55.6 V64 H54.2 Z" />
+    <path
+        android:fillColor="#C8783E"
+        android:pathData="M55.6,42 C60,45 63.5,48.5 61.5,56 C60.5,52 58.5,50 55.6,49 Z" />
+</vector>

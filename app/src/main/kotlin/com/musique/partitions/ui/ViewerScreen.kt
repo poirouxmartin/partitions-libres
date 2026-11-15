@@ -1,0 +1,193 @@
+package com.musique.partitions.ui
+
+import android.graphics.Bitmap
+import android.graphics.Picture
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.musique.partitions.PartitionsApp
+import com.musique.partitions.catalog.Piece
+import com.musique.partitions.catalog.ScoreFormat
+import com.musique.render.MusicXmlArchive
+import com.musique.render.SvgPages
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.io.IOException
+
+private val PageMargin = 12.dp
+
+private sealed interface ViewerState {
+    data object Loading : ViewerState
+    data class Error(val message: String) : ViewerState
+    data class Pictures(val pages: List<Picture>) : ViewerState
+    data class Pdf(val pages: PdfPages) : ViewerState
+}
+
+@Composable
+fun ViewerScreen(vm: MainViewModel, id: String) {
+    val catalog by vm.catalog.collectAsStateWithLifecycle()
+    val saved by vm.savedPieces.collectAsStateWithLifecycle()
+    // Read both states here, in this scope: BoxWithConstraints below is its own recompose scope,
+    // so a lookup that only depends on states read there would never be refreshed.
+    val piece = remember(catalog, saved, id) { vm.pieceById(id) }
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = { AppTopBar(title = piece?.title ?: "Partition", subtitle = piece?.composer, onBack = vm::pop) },
+        bottomBar = { if (piece != null) AttributionStrip(piece) },
+    ) { pad ->
+        BoxWithConstraints(Modifier.padding(pad).fillMaxSize()) {
+            val widthPx = with(LocalDensity.current) { (maxWidth - PageMargin * 2).roundToPx() }
+            when {
+                piece != null -> ViewerBody(piece, widthPx)
+                catalog is CatalogState.Loading -> CenteredLoading()
+                else -> CenteredMessage("Partition introuvable.")
+            }
+        }
+    }
+}
+
+@Composable
+private fun AttributionStrip(piece: Piece) {
+    Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outline)
+        Text(
+            "${piece.shortLicence()} · Gravure : ${piece.engraver} · Source : ${piece.source}",
+            modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 6.dp),
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+        )
+    }
+}
+
+@Composable
+private fun ViewerBody(piece: Piece, widthPx: Int) {
+    val app = LocalContext.current.applicationContext as PartitionsApp
+    // Un PDF se redessine à la largeur de la colonne sans rechargement ; seule la mise en page MusicXML en dépend.
+    val layoutWidth = if (piece.format == ScoreFormat.MUSICXML) widthPx else 0
+    var state by remember(piece.id, layoutWidth) { mutableStateOf<ViewerState>(ViewerState.Loading) }
+
+    LaunchedEffect(piece.id, layoutWidth) { state = loadViewer(app, piece, layoutWidth) }
+    DisposableEffect(state) {
+        val s = state
+        onDispose { if (s is ViewerState.Pdf) s.pages.close() }
+    }
+
+    when (val s = state) {
+        ViewerState.Loading -> CenteredLoading("Mise en page…")
+        is ViewerState.Error -> CenteredMessage(s.message)
+        is ViewerState.Pictures -> PageList {
+            itemsIndexed(s.pages) { _, picture -> PicturePage(picture) }
+        }
+        is ViewerState.Pdf -> PageList {
+            itemsIndexed(s.pages.sizes) { i, (w, h) -> PdfPage(s.pages, i, w.toFloat() / h, widthPx) }
+        }
+    }
+}
+
+private suspend fun loadViewer(app: PartitionsApp, piece: Piece, widthPx: Int): ViewerState {
+    val file = try {
+        app.scoreStore.fileForViewing(piece)
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: IOException) {
+        return ViewerState.Error("Pas de connexion. Téléchargez la partition pour la lire hors ligne.")
+    } catch (e: Exception) {
+        return ViewerState.Error("Impossible d'ouvrir la partition (${e.message}).")
+    }
+    return try {
+        when (piece.format) {
+            ScoreFormat.MUSICXML -> {
+                val xml = withContext(Dispatchers.IO) { MusicXmlArchive.readMusicXml(file.readBytes()) }
+                val pages = withContext(app.renderDispatcher) {
+                    app.renderer.render(xml, widthPx, 1f).map(SvgPages::toPicture)
+                }
+                ViewerState.Pictures(pages)
+            }
+            ScoreFormat.PDF -> ViewerState.Pdf(withContext(Dispatchers.IO) { PdfPages.open(file) })
+        }
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        ViewerState.Error("Impossible d'afficher cette partition (${e.message}).")
+    }
+}
+
+@Composable
+private fun PageList(content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(horizontal = PageMargin, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        content = content,
+    )
+}
+
+@Composable
+private fun PageFrame(aspect: Float, content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxWidth().aspectRatio(aspect).shadow(2.dp).background(Color.White)) { content() }
+}
+
+@Composable
+private fun PicturePage(picture: Picture) {
+    val aspect = if (picture.width > 0 && picture.height > 0) picture.width.toFloat() / picture.height else 0.7f
+    PageFrame(aspect) {
+        Canvas(Modifier.fillMaxSize()) {
+            drawIntoCanvas { canvas ->
+                val native = canvas.nativeCanvas
+                native.save()
+                val s = size.width / picture.width.coerceAtLeast(1)
+                native.scale(s, s)
+                native.drawPicture(picture)
+                native.restore()
+            }
+        }
+    }
+}
+
+@Composable
+private fun PdfPage(pdf: PdfPages, index: Int, aspect: Float, widthPx: Int) {
+    PageFrame(aspect) {
+        val bitmap by produceState<Bitmap?>(null, pdf, index, widthPx) { value = pdf.render(index, widthPx) }
+        bitmap?.let { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds) }
+    }
+}
