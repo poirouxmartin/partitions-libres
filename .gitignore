@@ -1,0 +1,15 @@
+.gradle/
+build/
+*/build/
+local.properties
+.idea/
+*.iml
+.cxx/
+*/.cxx/
+render/third_party/
+tools/.cache/
+__pycache__/
+/captures/
+.kotlin/
+render/.done
+*.log
