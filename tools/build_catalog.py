@@ -44,7 +44,7 @@ OPENSCORE_ENGRAVER = "Communauté OpenScore (transcription MuseScore)"
 
 def http_get(url: str, retries: int = 3) -> bytes:
     headers = {"User-Agent": UA}
-    if "api.github.com" in url and os.environ.get("GITHUB_TOKEN"):
+    if urllib.parse.urlsplit(url).hostname == "api.github.com" and os.environ.get("GITHUB_TOKEN"):
         headers["Authorization"] = "Bearer " + os.environ["GITHUB_TOKEN"]
     for attempt in range(retries):
         try:
