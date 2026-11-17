@@ -8,6 +8,7 @@ import com.musique.partitions.PartitionsApp
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ReleaseInfo
 import com.musique.partitions.data.LoadedCatalog
+import com.musique.partitions.update.UpdateInstaller
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -52,6 +53,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     val update = MutableStateFlow<ReleaseInfo?>(null)
     val installing = MutableStateFlow(false)
+    val updateMessage = MutableStateFlow<String?>(null)
 
     val results: StateFlow<List<Piece>> = combine(query.debounce(150), catalog) { q, c -> q to c }
         .mapLatest { (q, c) ->
@@ -71,6 +73,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         refreshSaved()
+    }
+
+    fun checkUpdate() {
         viewModelScope.launch { update.value = app.updateChecker.check() }
     }
 
@@ -121,12 +126,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         if (installing.value) return
         installing.value = true
         viewModelScope.launch {
+            updateMessage.value = null
             try {
-                app.updateInstaller.install(info)
+                val result = app.updateInstaller.install(info)
+                updateMessage.value = when (result) {
+                    UpdateInstaller.Result.STARTED -> null
+                    UpdateInstaller.Result.NEED_PERMISSION -> "Autorisez l'installation pour cette appli, puis touchez à nouveau Installer."
+                    UpdateInstaller.Result.DOWNLOAD_FAILED -> "Téléchargement impossible. Réessayez plus tard."
+                    UpdateInstaller.Result.BAD_URL, UpdateInstaller.Result.BAD_APK -> "Fichier de mise à jour refusé."
+                }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                // Silencieux : la bannière reste, l'utilisateur peut réessayer.
+                updateMessage.value = "Téléchargement impossible. Réessayez plus tard."
             } finally {
                 installing.value = false
             }
@@ -136,5 +148,6 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun dismissUpdate(info: ReleaseInfo) {
         app.updateChecker.dismiss(info.tag)
         update.value = null
+        updateMessage.value = null
     }
 }

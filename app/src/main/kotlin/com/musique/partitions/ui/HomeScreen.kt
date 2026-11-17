@@ -51,6 +51,7 @@ fun HomeScreen(vm: MainViewModel) {
     val saved by vm.savedPieces.collectAsStateWithLifecycle()
     val update by vm.update.collectAsStateWithLifecycle()
     val installing by vm.installing.collectAsStateWithLifecycle()
+    val updateMessage by vm.updateMessage.collectAsStateWithLifecycle()
     val savedIds = remember(saved) { saved.map { it.id }.toSet() }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { pad ->
@@ -90,6 +91,7 @@ fun HomeScreen(vm: MainViewModel) {
                 UpdateBanner(
                     info = info,
                     installing = installing,
+                    message = updateMessage,
                     onInstall = { vm.installUpdate(info) },
                     onLater = { vm.dismissUpdate(info) },
                 )
@@ -110,7 +112,7 @@ fun HomeScreen(vm: MainViewModel) {
 }
 
 @Composable
-private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, onInstall: () -> Unit, onLater: () -> Unit) {
+private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, message: String?, onInstall: () -> Unit, onLater: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.medium,
@@ -122,6 +124,7 @@ private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, onInstall: () -
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
+            message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 TextButton(onClick = onLater) { Text("Plus tard") }
                 Button(onClick = onInstall, enabled = !installing) {

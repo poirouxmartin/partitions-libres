@@ -9,6 +9,10 @@ class SharedPrefsUpdatePrefs(context: Context) : UpdatePrefs {
         get() = prefs.getLong("lastCheck", 0L)
         set(v) = prefs.edit().putLong("lastCheck", v).apply()
 
+    override var lastFailure: Long
+        get() = prefs.getLong("lastFailure", 0L)
+        set(v) = prefs.edit().putLong("lastFailure", v).apply()
+
     override var cachedResponse: String?
         get() = prefs.getString("cachedResponse", null)
         set(v) = prefs.edit().putString("cachedResponse", v).apply()
@@ -16,4 +20,8 @@ class SharedPrefsUpdatePrefs(context: Context) : UpdatePrefs {
     override var dismissedTag: String?
         get() = prefs.getString("dismissedTag", null)
         set(v) = prefs.edit().putString("dismissedTag", v).apply()
+
+    override var dismissedAt: Long
+        get() = prefs.getLong("dismissedAt", 0L)
+        set(v) = prefs.edit().putLong("dismissedAt", v).apply()
 }

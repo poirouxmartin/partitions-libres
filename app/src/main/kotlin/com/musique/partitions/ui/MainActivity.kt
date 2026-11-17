@@ -26,6 +26,12 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         vm.handleIntent(intent)
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Vérifie les mises à jour au démarrage et à chaque retour dans l'appli (limité par UpdateChecker).
+        vm.checkUpdate()
+    }
 }
 
 @Composable

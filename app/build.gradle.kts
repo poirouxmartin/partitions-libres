@@ -1,4 +1,5 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -7,12 +8,22 @@ plugins {
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
-val vrvAbis = (findProperty("vrvAbis") as String? ?: "x86_64").split(",").map { it.trim() }
+// arm64-v8a for phones, x86_64 for the emulator; -PvrvAbis=x86_64 for faster local builds.
+val vrvAbis = (findProperty("vrvAbis") as String? ?: "arm64-v8a,x86_64").split(",").map { it.trim() }
 val updateRepo = findProperty("updateRepo") as String? ?: "poirouxmartin/partitions-libres"
+
+// Release key lives outside the repo; losing it means users can no longer update in place.
+val signingFile = file(
+    findProperty("releaseSigning") as String?
+        ?: "${System.getProperty("user.home")}/.android/keys/partitions-libres/signing.properties",
+)
+val releaseSigning = Properties().takeIf { signingFile.isFile }?.apply { signingFile.inputStream().use(::load) }
 
 android {
     namespace = "com.musique.partitions"
     compileSdk = 36
+    // Same NDK as :render, so packaging can strip libverovio.so (unstripped, the APK is ~250 MB).
+    ndkVersion = "27.1.12297006"
 
     defaultConfig {
         applicationId = "com.musique.partitions"
@@ -24,11 +35,24 @@ android {
         buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
     }
 
+    signingConfigs {
+        if (releaseSigning != null) create("release") {
+            storeFile = signingFile.resolveSibling(releaseSigning.getProperty("storeFile"))
+            storePassword = releaseSigning.getProperty("storePassword")
+            keyAlias = releaseSigning.getProperty("keyAlias")
+            keyPassword = releaseSigning.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
-            // Local builds only, nothing is published: signed with the debug key.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseSigning != null) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("No release key at $signingFile: release APK signed with the debug key, do not publish it.")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 

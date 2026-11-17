@@ -15,11 +15,13 @@ class UpdateCheckerTest {
         override var lastCheck = 0L
         override var cachedResponse: String? = null
         override var dismissedTag: String? = null
+        override var lastFailure = 0L
+        override var dismissedAt = 0L
     }
 
     private fun releases(vararg tags: String) = tags.joinToString(prefix = "[", postfix = "]") {
         """{"tag_name":"$it","html_url":"https://example.org/$it","body":"",
-           "assets":[{"name":"app.apk","browser_download_url":"https://example.org/$it/app.apk"}]}"""
+           "assets":[{"name":"app.apk","browser_download_url":"https://github.com/owner/repo/releases/download/$it/app.apk"}]}"""
     }
 
     private var body = releases("v0.2.0")
@@ -41,7 +43,7 @@ class UpdateCheckerTest {
     fun newerReleaseIsAvailable() = runTest {
         val info = assertNotNull(checker().check())
         assertEquals("v0.2.0", info.tag)
-        assertEquals("https://example.org/v0.2.0/app.apk", info.apkUrl)
+        assertEquals("https://github.com/owner/repo/releases/download/v0.2.0/app.apk", info.apkUrl)
     }
 
     @Test
@@ -52,7 +54,7 @@ class UpdateCheckerTest {
     }
 
     @Test
-    fun throttledToOncePer12Hours() = runTest {
+    fun throttledToOncePerInterval() = runTest {
         val c = checker()
         assertNotNull(c.check())
         now += 60 * 60 * 1000
@@ -68,6 +70,7 @@ class UpdateCheckerTest {
         fail = true
         assertNull(checker().check())
         assertEquals(0L, prefs.lastCheck)
+        assertEquals(now, prefs.lastFailure)
     }
 
     @Test
@@ -78,5 +81,45 @@ class UpdateCheckerTest {
         body = releases("v0.2.0", "v0.3.0")
         now += UpdateChecker.INTERVAL_MS
         assertEquals("v0.3.0", c.check()?.tag)
+    }
+
+    @Test
+    fun knownUpdateStaysOfferedOffline() = runTest {
+        val c = checker()
+        assertNotNull(c.check())
+        fail = true
+        now += UpdateChecker.INTERVAL_MS
+        assertEquals("v0.2.0", c.check()?.tag)
+        assertEquals(2, fetches)
+    }
+
+    @Test
+    fun retriesThirtyMinutesAfterFailure() = runTest {
+        fail = true
+        val c = checker()
+        c.check()
+        assertEquals(1, fetches)
+        now += 10 * 60 * 1000
+        c.check()
+        assertEquals(1, fetches)
+        fail = false
+        now += UpdateChecker.RETRY_MS
+        assertNotNull(c.check())
+        assertEquals(2, fetches)
+    }
+
+    @Test
+    fun laterSnoozesForADay() = runTest {
+        val c = checker()
+        c.dismiss("v0.2.0")
+        assertNull(c.check())
+        now += UpdateChecker.SNOOZE_MS
+        assertEquals("v0.2.0", c.check()?.tag)
+    }
+
+    @Test
+    fun apkFromAnotherHostIsIgnored() = runTest {
+        body = """[{"tag_name":"v0.2.0","assets":[{"name":"app.apk","browser_download_url":"https://evil.example/v0.2.0/app.apk"}]}]"""
+        assertNull(checker().check())
     }
 }

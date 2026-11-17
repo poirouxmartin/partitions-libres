@@ -12,30 +12,61 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class UpdateInstaller(private val context: Context, private val fetcher: Fetcher) {
+/**
+ * Télécharge l'APK d'une release et le confie à l'installateur Android.
+ * Garde-fous : l'URL doit venir des releases du dépôt, l'APK doit porter le même identifiant
+ * et un versionCode supérieur ; Android refuse de lui-même un APK signé avec une autre clé.
+ */
+class UpdateInstaller(
+    private val context: Context,
+    private val fetcher: Fetcher,
+    private val apkUrlPrefix: String,
+) {
 
-    /** Télécharge l'APK puis lance l'installation ; sans autorisation « sources inconnues », ouvre d'abord ce réglage. */
-    suspend fun install(info: ReleaseInfo) {
-        if (!context.packageManager.canRequestPackageInstalls()) {
+    enum class Result { STARTED, NEED_PERMISSION, BAD_URL, DOWNLOAD_FAILED, BAD_APK }
+
+    suspend fun install(info: ReleaseInfo): Result {
+        if (!info.apkUrl.startsWith(apkUrlPrefix) || ".." in info.apkUrl) return Result.BAD_URL
+        val pm = context.packageManager
+        if (!pm.canRequestPackageInstalls()) {
+            // Réglage « Installer des applis inconnues » ; l'utilisateur retouche « Installer » ensuite.
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
             )
-            return
+            return Result.NEED_PERMISSION
         }
         val dir = File(context.cacheDir, "updates")
-        val apk = File(dir, "update-${info.tag}.apk")
-        withContext(Dispatchers.IO) {
-            if (!apk.exists()) {
-                dir.listFiles()?.forEach { it.delete() }
-                download(fetcher, info.apkUrl, apk)
+        val apk = File(dir, "update-${info.tag.filter { it.isLetterOrDigit() || it == '.' || it == '-' }}.apk")
+        val ok = withContext(Dispatchers.IO) {
+            try {
+                if (!apk.exists()) {
+                    dir.listFiles()?.forEach { it.delete() }
+                    download(fetcher, info.apkUrl, apk)
+                }
+                true
+            } catch (e: Exception) {
+                apk.delete()
+                false
             }
         }
+        if (!ok) return Result.DOWNLOAD_FAILED
+
+        val archive = pm.getPackageArchiveInfo(apk.absolutePath, 0)
+        val installed = pm.getPackageInfo(context.packageName, 0)
+        if (archive == null || archive.packageName != context.packageName ||
+            archive.longVersionCode <= installed.longVersionCode
+        ) {
+            apk.delete()
+            return Result.BAD_APK
+        }
+
         val uri = FileProvider.getUriForFile(context, "${context.packageName}.files", apk)
         context.startActivity(
             Intent(Intent.ACTION_VIEW)
                 .setDataAndType(uri, "application/vnd.android.package-archive")
                 .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK),
         )
+        return Result.STARTED
     }
 }

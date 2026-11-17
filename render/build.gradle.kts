@@ -4,7 +4,7 @@ plugins {
 }
 
 val vrvDir = project.file("third_party/verovio")
-val vrvAbis = (findProperty("vrvAbis") as String? ?: "x86_64").split(",").map { it.trim() }
+val vrvAbis = (findProperty("vrvAbis") as String? ?: "arm64-v8a,x86_64").split(",").map { it.trim() }
 
 // Verovio's runtime resources (SMuFL font metrics, text fonts) are shipped as assets
 // under verovio-data/ and unpacked to filesDir by VerovioResources.

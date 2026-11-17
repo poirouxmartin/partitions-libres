@@ -22,7 +22,7 @@ class PartitionsApp : Application() {
     val updateChecker by lazy {
         UpdateChecker(fetcher, SharedPrefsUpdatePrefs(this), System::currentTimeMillis, BuildConfig.VERSION_NAME, BuildConfig.UPDATE_REPO)
     }
-    val updateInstaller by lazy { UpdateInstaller(this, fetcher) }
+    val updateInstaller by lazy { UpdateInstaller(this, fetcher, updateChecker.apkUrlPrefix) }
 
     /** Verovio n'est pas thread-safe : un seul thread, un seul moteur pour toute l'application. */
     val renderDispatcher by lazy { Executors.newSingleThreadExecutor().asCoroutineDispatcher() }
