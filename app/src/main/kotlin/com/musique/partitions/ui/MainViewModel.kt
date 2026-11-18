@@ -56,6 +56,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val downloads = MutableStateFlow<Map<String, Float>>(emptyMap())
     val downloadError = MutableStateFlow<String?>(null)
 
+    /** Tourne-page demandé par une touche (pédale) : +1 avance, -1 recule. */
+    val pageTurns = kotlinx.coroutines.flow.MutableSharedFlow<Int>(extraBufferCapacity = 4)
+
     val update = MutableStateFlow<ReleaseInfo?>(null)
     val installing = MutableStateFlow(false)
     val updateMessage = MutableStateFlow<String?>(null)

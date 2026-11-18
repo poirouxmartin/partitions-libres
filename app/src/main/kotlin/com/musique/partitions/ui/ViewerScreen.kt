@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.animateScrollBy
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Row
@@ -32,18 +31,12 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.launch
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
@@ -104,7 +97,7 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
         BoxWithConstraints(Modifier.padding(pad).fillMaxSize()) {
             val widthPx = with(LocalDensity.current) { (maxWidth - PageMargin * 2).roundToPx() }
             when {
-                piece != null -> ViewerBody(piece, widthPx)
+                piece != null -> ViewerBody(piece, widthPx, vm.pageTurns)
                 catalog is CatalogState.Loading -> CenteredLoading()
                 else -> CenteredMessage("Partition introuvable.")
             }
@@ -128,7 +121,7 @@ private fun AttributionStrip(piece: Piece) {
 }
 
 @Composable
-private fun ViewerBody(piece: Piece, widthPx: Int) {
+private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
     val app = LocalContext.current.applicationContext as PartitionsApp
     // Un PDF se redessine à la largeur de la colonne sans rechargement ; seule la mise en page MusicXML en dépend.
     val layoutWidth = if (piece.format == ScoreFormat.MUSICXML) widthPx else 0
@@ -143,10 +136,10 @@ private fun ViewerBody(piece: Piece, widthPx: Int) {
     when (val s = state) {
         ViewerState.Loading -> CenteredLoading()
         is ViewerState.Error -> CenteredMessage(s.message)
-        is ViewerState.Pictures -> StageReader(s.pages.size) {
+        is ViewerState.Pictures -> StageReader(s.pages.size, turns) {
             itemsIndexed(s.pages) { _, picture -> PicturePage(picture) }
         }
-        is ViewerState.Pdf -> StageReader(s.pages.sizes.size) {
+        is ViewerState.Pdf -> StageReader(s.pages.sizes.size, turns) {
             itemsIndexed(s.pages.sizes) { i, (w, h) -> PdfPage(s.pages, i, w.toFloat() / h, widthPx) }
         }
     }
@@ -157,10 +150,9 @@ private fun ViewerBody(piece: Piece, widthPx: Int) {
  * à gauche pour revenir, pédale Bluetooth (flèches, Page suivante/précédente, espace).
  */
 @Composable
-private fun StageReader(pageCount: Int, content: LazyListScope.() -> Unit) {
+private fun StageReader(pageCount: Int, turns: Flow<Int>, content: LazyListScope.() -> Unit) {
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val focus = remember { FocusRequester() }
     var viewportPx by remember { mutableIntStateOf(0) }
     var hint by remember { mutableStateOf(true) }
     val view = LocalView.current
@@ -170,7 +162,6 @@ private fun StageReader(pageCount: Int, content: LazyListScope.() -> Unit) {
         onDispose { view.keepScreenOn = false }
     }
     LaunchedEffect(Unit) {
-        focus.requestFocus()
         delay(1800)
         hint = false
     }
@@ -178,6 +169,7 @@ private fun StageReader(pageCount: Int, content: LazyListScope.() -> Unit) {
         hint = false
         scope.launch { listState.animateScrollBy(direction * viewportPx * 0.85f) }
     }
+    LaunchedEffect(turns) { turns.collect { turn(it) } }
     val page by remember {
         derivedStateOf {
             val first = listState.layoutInfo.visibleItemsInfo.firstOrNull()
@@ -190,16 +182,6 @@ private fun StageReader(pageCount: Int, content: LazyListScope.() -> Unit) {
         Modifier
             .fillMaxSize()
             .onSizeChanged { viewportPx = it.height }
-            .focusRequester(focus)
-            .focusable()
-            .onPreviewKeyEvent { e ->
-                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
-                when (e.key) {
-                    Key.PageDown, Key.DirectionDown, Key.DirectionRight, Key.Spacebar -> { turn(1); true }
-                    Key.PageUp, Key.DirectionUp, Key.DirectionLeft -> { turn(-1); true }
-                    else -> false
-                }
-            },
     ) {
         LazyColumn(
             state = listState,
