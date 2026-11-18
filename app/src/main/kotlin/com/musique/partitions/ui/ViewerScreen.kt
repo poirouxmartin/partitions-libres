@@ -15,8 +15,36 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.gestures.animateScrollBy
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -113,14 +141,105 @@ private fun ViewerBody(piece: Piece, widthPx: Int) {
     }
 
     when (val s = state) {
-        ViewerState.Loading -> CenteredLoading("Mise en page…")
+        ViewerState.Loading -> CenteredLoading()
         is ViewerState.Error -> CenteredMessage(s.message)
-        is ViewerState.Pictures -> PageList {
+        is ViewerState.Pictures -> StageReader(s.pages.size) {
             itemsIndexed(s.pages) { _, picture -> PicturePage(picture) }
         }
-        is ViewerState.Pdf -> PageList {
+        is ViewerState.Pdf -> StageReader(s.pages.sizes.size) {
             itemsIndexed(s.pages.sizes) { i, (w, h) -> PdfPage(s.pages, i, w.toFloat() / h, widthPx) }
         }
+    }
+}
+
+/**
+ * Lecture « sur le pupitre » : écran toujours allumé, tap à droite pour avancer d'un écran,
+ * à gauche pour revenir, pédale Bluetooth (flèches, Page suivante/précédente, espace).
+ */
+@Composable
+private fun StageReader(pageCount: Int, content: LazyListScope.() -> Unit) {
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val focus = remember { FocusRequester() }
+    var viewportPx by remember { mutableIntStateOf(0) }
+    var hint by remember { mutableStateOf(true) }
+    val view = LocalView.current
+
+    DisposableEffect(view) {
+        view.keepScreenOn = true
+        onDispose { view.keepScreenOn = false }
+    }
+    LaunchedEffect(Unit) {
+        focus.requestFocus()
+        delay(1800)
+        hint = false
+    }
+    fun turn(direction: Int) {
+        hint = false
+        scope.launch { listState.animateScrollBy(direction * viewportPx * 0.85f) }
+    }
+    val page by remember {
+        derivedStateOf {
+            val first = listState.layoutInfo.visibleItemsInfo.firstOrNull()
+            val index = listState.firstVisibleItemIndex
+            if (first != null && listState.firstVisibleItemScrollOffset > first.size / 2) index + 2 else index + 1
+        }
+    }
+
+    Box(
+        Modifier
+            .fillMaxSize()
+            .onSizeChanged { viewportPx = it.height }
+            .focusRequester(focus)
+            .focusable()
+            .onPreviewKeyEvent { e ->
+                if (e.type != KeyEventType.KeyDown) return@onPreviewKeyEvent false
+                when (e.key) {
+                    Key.PageDown, Key.DirectionDown, Key.DirectionRight, Key.Spacebar -> { turn(1); true }
+                    Key.PageUp, Key.DirectionUp, Key.DirectionLeft -> { turn(-1); true }
+                    else -> false
+                }
+            },
+    ) {
+        LazyColumn(
+            state = listState,
+            modifier = Modifier.fillMaxSize().pointerInput(Unit) {
+                detectTapGestures { offset -> turn(if (offset.x < size.width / 3f) -1 else 1) }
+            },
+            contentPadding = PaddingValues(horizontal = PageMargin, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            content = content,
+        )
+        if (pageCount > 0) {
+            Surface(
+                modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
+                shape = RoundedCornerShape(50),
+                color = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.75f),
+            ) {
+                Text(
+                    "${page.coerceIn(1, pageCount)} / $pageCount",
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.inverseOnSurface,
+                )
+            }
+        }
+        AnimatedVisibility(visible = hint, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxSize()) {
+            Row(Modifier.fillMaxSize()) {
+                TapZone("‹", Modifier.weight(1f))
+                TapZone("›", Modifier.weight(2f))
+            }
+        }
+    }
+}
+
+@Composable
+private fun TapZone(arrow: String, modifier: Modifier) {
+    Box(
+        modifier.fillMaxSize().padding(4.dp).background(MaterialTheme.colorScheme.primary.copy(alpha = 0.10f), RoundedCornerShape(16.dp)),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(arrow, fontSize = 64.sp, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f))
     }
 }
 
@@ -150,16 +269,6 @@ private suspend fun loadViewer(app: PartitionsApp, piece: Piece, widthPx: Int): 
     } catch (e: Exception) {
         ViewerState.Error("Impossible d'afficher cette partition (${e.message}).")
     }
-}
-
-@Composable
-private fun PageList(content: androidx.compose.foundation.lazy.LazyListScope.() -> Unit) {
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = PageMargin, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
-        content = content,
-    )
 }
 
 @Composable
