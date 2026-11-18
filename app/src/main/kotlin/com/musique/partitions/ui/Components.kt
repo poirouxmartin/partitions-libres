@@ -40,8 +40,8 @@ import com.musique.partitions.catalog.ScoreFormat
 fun Piece.shortLicence(): String = if (licence == "CC0-1.0") "CC0" else licenceLabel
 
 fun Piece.formatLine(): String = when (format) {
-    ScoreFormat.MUSICXML -> "MusicXML, mise en page adaptée à l'écran"
-    ScoreFormat.PDF -> "PDF, tel que gravé"
+    ScoreFormat.MUSICXML -> "Adaptée à l'écran"
+    ScoreFormat.PDF -> "PDF gravé"
 }
 
 fun openUrl(context: Context, url: String) {
@@ -53,7 +53,12 @@ fun openUrl(context: Context, url: String) {
 }
 
 @Composable
-fun AppTopBar(title: String, subtitle: String? = null, onBack: () -> Unit) {
+fun AppTopBar(
+    title: String,
+    subtitle: String? = null,
+    onBack: () -> Unit,
+    actions: @Composable androidx.compose.foundation.layout.RowScope.() -> Unit = {},
+) {
     TopAppBar(
         title = {
             Column {
@@ -72,6 +77,7 @@ fun AppTopBar(title: String, subtitle: String? = null, onBack: () -> Unit) {
         navigationIcon = {
             IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour") }
         },
+        actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
     )
 }

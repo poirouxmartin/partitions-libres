@@ -5,8 +5,11 @@ import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.musique.partitions.PartitionsApp
+import com.musique.partitions.catalog.InstrumentFamily
+import com.musique.partitions.catalog.NaturalOrder
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ReleaseInfo
+import com.musique.partitions.data.Library
 import com.musique.partitions.data.LoadedCatalog
 import com.musique.partitions.update.UpdateInstaller
 import kotlinx.coroutines.CancellationException
@@ -46,6 +49,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val query = MutableStateFlow("")
     val catalog = MutableStateFlow<CatalogState>(CatalogState.Loading)
     val savedPieces = MutableStateFlow<List<Piece>>(emptyList())
+    val library = MutableStateFlow(Library())
+    val family = MutableStateFlow<InstrumentFamily?>(null)
 
     /** Progression des téléchargements en cours (0..1, négatif si taille inconnue). */
     val downloads = MutableStateFlow<Map<String, Float>>(emptyMap())
@@ -55,9 +60,20 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val installing = MutableStateFlow(false)
     val updateMessage = MutableStateFlow<String?>(null)
 
-    val results: StateFlow<List<Piece>> = combine(query.debounce(150), catalog) { q, c -> q to c }
-        .mapLatest { (q, c) ->
-            if (q.isBlank() || c !is CatalogState.Ready) emptyList() else c.data.search.search(q)
+    /** Sans texte ni famille : rien. Famille seule : toutes les pièces de la famille. */
+    val results: StateFlow<List<Piece>> = combine(query.debounce(150), family, catalog) { q, f, c -> Triple(q, f, c) }
+        .mapLatest { (q, f, c) ->
+            when {
+                c !is CatalogState.Ready -> emptyList()
+                q.isBlank() && f == null -> emptyList()
+                q.isBlank() && f != null -> c.data.catalog.pieces
+                    .filter { f in c.data.families.getValue(it.id) }
+                    // Parcours d'une famille : tout afficher (1 700 pièces au plus), la liste est paresseuse.
+                    .sortedWith(compareBy<Piece> { it.composerSort }.thenComparator { a, b -> NaturalOrder.compare(a.title, b.title) })
+                else -> c.data.search.search(q, limit = Int.MAX_VALUE)
+                    .filter { f == null || f in c.data.families.getValue(it.id) }
+                    .take(300)
+            }
         }
         .flowOn(Dispatchers.Default)
         .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
@@ -72,8 +88,22 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 CatalogState.Failed(e.message ?: "erreur inconnue")
             }
         }
+        viewModelScope.launch { library.value = withContext(Dispatchers.IO) { app.libraryStore.load() } }
         refreshSaved()
     }
+
+    fun toggleFavourite(id: String) = updateLibrary { it.toggleFavourite(id) }
+
+    fun markOpened(id: String) = updateLibrary { it.markOpened(id) }
+
+    /** Disque plein ou autre erreur d'écriture : on garde l'état courant plutôt que de planter. */
+    private fun updateLibrary(change: (com.musique.partitions.data.LibraryStore) -> com.musique.partitions.data.Library) {
+        viewModelScope.launch {
+            runCatching { withContext(Dispatchers.IO) { change(app.libraryStore) } }.onSuccess { library.value = it }
+        }
+    }
+
+    fun setFamily(f: InstrumentFamily?) { family.value = f }
 
     fun checkUpdate() {
         viewModelScope.launch { update.value = app.updateChecker.check() }
@@ -90,10 +120,13 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         intent ?: return
         intent.getStringExtra("query")?.let { query.value = it }
         intent.getStringExtra("open")?.let { stack.value = listOf(Screen.Home, Screen.Piece(it)) }
-        intent.getStringExtra("view")?.let { stack.value = listOf(Screen.Home, Screen.Viewer(it)) }
+        intent.getStringExtra("view")?.let { stack.value = listOf(Screen.Home, Screen.Viewer(it)); markOpened(it) }
     }
 
-    fun push(screen: Screen) = stack.update { it + screen }
+    fun push(screen: Screen) {
+        if (screen is Screen.Viewer) markOpened(screen.id)
+        stack.update { it + screen }
+    }
     fun pop() = stack.update { if (it.size > 1) it.dropLast(1) else it }
     fun setQuery(q: String) { query.value = q }
 
