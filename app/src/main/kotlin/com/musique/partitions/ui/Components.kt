@@ -98,13 +98,13 @@ fun AppTopBar(
 @Composable
 fun AppNavBar(vm: MainViewModel, current: Screen) {
     val library by vm.library.collectAsStateWithLifecycle()
-    // Couleurs de la palette « papier et encre » plutôt que le mauve par défaut de Material.
+    // Colours from the "paper and ink" palette rather than Material's default purple.
     NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
         NavigationBarItem(
             selected = current == Screen.Home,
             onClick = { vm.openTab(Screen.Home) },
             icon = { Icon(Icons.Default.Home, contentDescription = null) },
-            label = { Text("Accueil") },
+            label = { Text(stringResource(R.string.nav_home)) },
         )
         NavigationBarItem(
             selected = current == Screen.Favourites,
@@ -114,13 +114,13 @@ fun AppNavBar(vm: MainViewModel, current: Screen) {
                     Icon(Icons.Default.Favorite, contentDescription = null)
                 }
             },
-            label = { Text("Favoris") },
+            label = { Text(stringResource(R.string.nav_favourites)) },
         )
         NavigationBarItem(
             selected = current == Screen.Settings,
             onClick = { vm.openTab(Screen.Settings) },
             icon = { Icon(Icons.Default.Settings, contentDescription = null) },
-            label = { Text("Réglages") },
+            label = { Text(stringResource(R.string.nav_settings)) },
         )
     }
 }

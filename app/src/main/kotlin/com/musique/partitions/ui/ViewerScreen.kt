@@ -154,7 +154,7 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>, settings: S
 }
 
 /**
- * « sur le pupitre » reading: screen always on, tap on the right to advance one screen,
+ * "on the music stand" reading: screen always on, tap on the right to advance one screen,
  * on the left to go back, Bluetooth pedal (arrow keys, next/previous page, space).
  */
 @Composable
@@ -281,7 +281,7 @@ private fun PicturePage(picture: Picture, paper: ScorePaper) {
                 native.save()
                 val s = size.width / picture.width.coerceAtLeast(1)
                 native.scale(s, s)
-                // Le SVG est transparent : on l'étale sur du blanc dans une couche recolorée par la matrice.
+                // The SVG is transparent: it is laid over white in a layer recoloured by the matrix.
                 if (layerPaint != null) {
                     native.saveLayer(null, layerPaint)
                     native.drawRect(

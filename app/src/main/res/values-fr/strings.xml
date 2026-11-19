@@ -7,6 +7,31 @@
     <string name="common_piece_not_found">Partition introuvable.</string>
     <string name="common_error_unknown">erreur inconnue</string>
 
+    <string name="nav_home">Accueil</string>
+    <string name="nav_favourites">Favoris</string>
+    <string name="nav_settings">Réglages</string>
+
+    <string name="favourites_title">Favoris</string>
+    <string name="favourites_removed">Retiré des favoris</string>
+    <string name="favourites_undo">Annuler</string>
+    <string name="favourites_empty_title">Aucun favori</string>
+    <string name="favourites_empty_hint">Touchez ♡ sur une partition pour la retrouver ici.</string>
+    <string name="favourites_browse">Parcourir</string>
+
+    <string name="settings_scores">Partitions</string>
+    <string name="settings_display">Affichage</string>
+    <string name="settings_reading">Lecture</string>
+    <string name="settings_app">Appli</string>
+    <string name="settings_keep_screen_on">Écran toujours allumé</string>
+    <string name="settings_tap_to_turn">Tourner la page d\'un toucher</string>
+    <string name="theme_auto">Auto</string>
+    <string name="theme_light">Clair</string>
+    <string name="theme_dark">Sombre</string>
+    <string name="paper_white">Blanc</string>
+    <string name="paper_cream">Papier</string>
+    <string name="paper_sepia">Sépia</string>
+    <string name="paper_night">Nuit</string>
+
     <string name="about_title">À propos et licences</string>
     <string name="about_version">Version %1$s</string>
     <string name="about_section_catalog">Catalogue</string>

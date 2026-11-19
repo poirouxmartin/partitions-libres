@@ -41,7 +41,7 @@ class LibraryStoreTest {
 
     @Test
     fun corruptFileGivesEmptyLibrary() {
-        file.writeText("{pas du json")
+        file.writeText("{not json")
         assertEquals(Library(), LibraryStore(file).load())
     }
 }

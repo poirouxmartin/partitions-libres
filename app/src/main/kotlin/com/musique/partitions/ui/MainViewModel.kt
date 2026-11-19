@@ -119,7 +119,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { app.settingsStore.save(next) } } }
     }
 
-    /** Onglet de la barre du bas : l'accueil reste sous les autres pour que Retour y ramène. */
+    /** Bottom bar tab: home stays under the others so Back returns to it. */
     fun openTab(tab: Screen) {
         stack.value = if (tab == Screen.Home) listOf(Screen.Home) else listOf(Screen.Home, tab)
     }

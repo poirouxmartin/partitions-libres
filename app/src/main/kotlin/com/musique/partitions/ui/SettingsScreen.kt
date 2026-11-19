@@ -31,11 +31,13 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.musique.partitions.BuildConfig
+import com.musique.partitions.R
 import com.musique.partitions.data.ScorePaper
 import com.musique.partitions.data.ThemeMode
 
@@ -49,13 +51,13 @@ fun SettingsScreen(vm: MainViewModel) {
     ) { pad ->
         Column(Modifier.padding(pad).verticalScroll(rememberScrollState()).padding(16.dp)) {
             Text(
-                "Réglages",
+                stringResource(R.string.nav_settings),
                 modifier = Modifier.padding(start = 4.dp),
                 style = MaterialTheme.typography.headlineSmall,
                 color = MaterialTheme.colorScheme.primary,
             )
 
-            SectionTitle("Partitions")
+            SectionTitle(stringResource(R.string.settings_scores))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (p in ScorePaper.entries) {
                     PaperSwatch(p, p == settings.paper, Modifier.weight(1f)) {
@@ -64,36 +66,36 @@ fun SettingsScreen(vm: MainViewModel) {
                 }
             }
 
-            SectionTitle("Affichage")
+            SectionTitle(stringResource(R.string.settings_display))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 for (m in ThemeMode.entries) {
                     ChoiceCard(m == settings.theme, Modifier.weight(1f), onClick = { vm.updateSettings { it.copy(theme = m) } }) {
                         Column(Modifier.fillMaxWidth().padding(12.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(m.emoji, fontSize = 28.sp, textAlign = TextAlign.Center)
-                            Text(m.label, style = MaterialTheme.typography.labelLarge)
+                            Text(stringResource(m.labelRes), style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
             }
 
-            SectionTitle("Lecture")
-            SwitchRow("💡", "Écran toujours allumé", settings.keepScreenOn) { v ->
+            SectionTitle(stringResource(R.string.settings_reading))
+            SwitchRow("💡", stringResource(R.string.settings_keep_screen_on), settings.keepScreenOn) { v ->
                 vm.updateSettings { it.copy(keepScreenOn = v) }
             }
-            SwitchRow("👆", "Tourner la page d'un toucher", settings.tapToTurn) { v ->
+            SwitchRow("👆", stringResource(R.string.settings_tap_to_turn), settings.tapToTurn) { v ->
                 vm.updateSettings { it.copy(tapToTurn = v) }
             }
 
-            SectionTitle("Appli")
+            SectionTitle(stringResource(R.string.settings_app))
             Row(
                 Modifier.fillMaxWidth().clickable { vm.push(Screen.About) }.padding(vertical = 12.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Icon(Icons.Default.Info, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                Text("À propos et licences", Modifier.padding(start = 16.dp), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.about_title), Modifier.padding(start = 16.dp), style = MaterialTheme.typography.bodyLarge)
             }
             Text(
-                "Version ${BuildConfig.VERSION_NAME}",
+                stringResource(R.string.about_version, BuildConfig.VERSION_NAME),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -124,7 +126,7 @@ private fun PaperSwatch(paper: ScorePaper, selected: Boolean, modifier: Modifier
                 drawStaff(ink, size.height * 0.60f)
             }
             Row(Modifier.fillMaxWidth().padding(top = 6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text(paper.label, Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
+                Text(stringResource(paper.labelRes), Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, maxLines = 1)
                 if (selected) {
                     Icon(Icons.Default.Check, contentDescription = null, Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
                 }
@@ -133,7 +135,7 @@ private fun PaperSwatch(paper: ScorePaper, selected: Boolean, modifier: Modifier
     }
 }
 
-/** Une portée miniature : 5 lignes, quelques notes avec leur hampe. */
+/** A miniature staff: 5 lines, a few notes with stems. */
 private fun DrawScope.drawStaff(ink: Color, top: Float) {
     val gap = size.height * 0.06f
     val left = size.width * 0.10f
@@ -148,7 +150,7 @@ private fun DrawScope.drawStaff(ink: Color, top: Float) {
     val notes = 4
     for (n in 0 until notes) {
         val x = left + (right - left) * (0.12f + 0.24f * n)
-        // Hauteurs variées, en demi-intervalles de portée.
+        // Varied pitches, in half staff intervals.
         val y = top + gap * listOf(3f, 2f, 2.5f, 1.5f)[n]
         drawOval(ink, Offset(x, y - headH / 2), Size(headW, headH))
         drawLine(ink, Offset(x + headW, y), Offset(x + headW, y - gap * 2.5f), strokeWidth = stroke)

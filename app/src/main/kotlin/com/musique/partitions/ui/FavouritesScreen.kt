@@ -33,28 +33,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.musique.partitions.R
 import kotlinx.coroutines.launch
 
 @Composable
 fun FavouritesScreen(vm: MainViewModel) {
-    // États lus ici, à la racine : le Scaffold a ses propres lambdas de recomposition.
+    // States read here, at the root: the Scaffold has its own recomposition lambdas.
     val library by vm.library.collectAsStateWithLifecycle()
     val catalog by vm.catalog.collectAsStateWithLifecycle()
     val saved by vm.savedPieces.collectAsStateWithLifecycle()
     val pieces = remember(library, catalog, saved) { library.favourites.mapNotNull { vm.pieceById(it) } }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val removedMsg = stringResource(R.string.favourites_removed)
+    val undoLabel = stringResource(R.string.favourites_undo)
 
     fun remove(id: String) {
         vm.toggleFavourite(id)
         scope.launch {
             snackbar.currentSnackbarData?.dismiss()
-            val result = snackbar.showSnackbar("Retiré des favoris", actionLabel = "Annuler")
+            val result = snackbar.showSnackbar(removedMsg, actionLabel = undoLabel)
             if (result == SnackbarResult.ActionPerformed) vm.toggleFavourite(id)
         }
     }
@@ -71,7 +75,7 @@ fun FavouritesScreen(vm: MainViewModel) {
             ) {
                 Icon(Icons.Default.Favorite, contentDescription = null, tint = MaterialTheme.colorScheme.secondary)
                 Text(
-                    "  Favoris",
+                    "  " + stringResource(R.string.favourites_title),
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
@@ -107,12 +111,12 @@ fun FavouritesScreen(vm: MainViewModel) {
                                 )
                             }
                             IconButton(onClick = { vm.push(Screen.Viewer(p.id)) }) {
-                                Icon(Icons.Default.PlayArrow, contentDescription = "Lire")
+                                Icon(Icons.Default.PlayArrow, contentDescription = stringResource(R.string.common_read))
                             }
                             IconButton(onClick = { remove(p.id) }) {
                                 Icon(
                                     Icons.Default.Favorite,
-                                    contentDescription = "Retirer des favoris",
+                                    contentDescription = stringResource(R.string.piece_remove_favorite),
                                     tint = MaterialTheme.colorScheme.secondary,
                                 )
                             }
@@ -137,9 +141,9 @@ private fun EmptyFavourites(onBrowse: () -> Unit) {
             modifier = Modifier.size(72.dp),
             tint = MaterialTheme.colorScheme.secondary,
         )
-        Text("Aucun favori", Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.favourites_empty_title), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleMedium)
         Text(
-            "Touchez ♡ sur une partition pour la retrouver ici.",
+            stringResource(R.string.favourites_empty_hint),
             Modifier.padding(top = 4.dp),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -148,7 +152,7 @@ private fun EmptyFavourites(onBrowse: () -> Unit) {
         Button(onClick = onBrowse, modifier = Modifier.padding(top = 20.dp)) {
             Icon(Icons.Default.Search, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Parcourir")
+            Text(stringResource(R.string.favourites_browse))
         }
     }
 }

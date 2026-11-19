@@ -29,7 +29,7 @@ class UpdateInstaller(
         if (!info.apkUrl.startsWith(apkUrlPrefix) || ".." in info.apkUrl) return Result.BAD_URL
         val pm = context.packageManager
         if (!pm.canRequestPackageInstalls()) {
-            // « Installer des applis inconnues » setting (unknown apps); the user then taps « Installer » again.
+            // "Install unknown apps" setting; the user then taps "Install" again.
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
