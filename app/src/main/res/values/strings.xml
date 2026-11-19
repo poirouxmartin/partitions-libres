@@ -69,4 +69,7 @@
     <string name="update_need_permission">Allow installs for this app, then tap Install again.</string>
     <string name="update_download_failed">Download failed. Try again later.</string>
     <string name="update_refused">Update file refused.</string>
+    <string name="update_channel_name">App updates</string>
+    <string name="update_notif_title">Update available: %1$s</string>
+    <string name="update_notif_text">Tap to install it.</string>
 </resources>

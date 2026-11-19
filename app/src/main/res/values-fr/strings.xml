@@ -66,4 +66,7 @@
     <string name="update_need_permission">Autorisez l\'installation pour cette appli, puis touchez à nouveau Installer.</string>
     <string name="update_download_failed">Téléchargement impossible. Réessayez plus tard.</string>
     <string name="update_refused">Fichier de mise à jour refusé.</string>
+    <string name="update_channel_name">Mises à jour de l\'appli</string>
+    <string name="update_notif_title">Mise à jour disponible : %1$s</string>
+    <string name="update_notif_text">Touchez pour l\'installer.</string>
 </resources>

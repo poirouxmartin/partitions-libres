@@ -139,6 +139,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun handleIntent(intent: Intent?) {
         intent ?: return
+        if (intent.action == com.musique.partitions.update.UpdateNotifier.ACTION_OPEN_UPDATE) {
+            app.updateChecker.undismiss()
+            stack.value = listOf(Screen.Home) // the update banner lives on Home; onResume runs the check
+        }
         intent.getStringExtra("query")?.let { query.value = it }
         intent.getStringExtra("open")?.let { stack.value = listOf(Screen.Home, Screen.Piece(it)) }
         when (intent.getStringExtra("tab")) {

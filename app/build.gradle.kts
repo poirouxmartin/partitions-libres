@@ -88,6 +88,7 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.9.2")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.9.0")
+    implementation("androidx.work:work-runtime-ktx:2.10.2")
 
     testImplementation("junit:junit:4.13.2")
     testImplementation(kotlin("test"))

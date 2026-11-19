@@ -1,7 +1,11 @@
 package com.musique.partitions.ui
 
+import android.Manifest
+import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.os.Build
 import androidx.activity.SystemBarStyle
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.runtime.LaunchedEffect
@@ -12,6 +16,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -20,11 +25,13 @@ import com.musique.partitions.ui.theme.AppTheme
 
 class MainActivity : ComponentActivity() {
     private val vm: MainViewModel by viewModels()
+    private val notificationPermission = registerForActivityResult(ActivityResultContracts.RequestPermission()) {}
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) vm.handleIntent(intent)
+        if (savedInstanceState == null) askNotificationsOnce()
         setContent {
             val settings by vm.settings.collectAsStateWithLifecycle()
             val systemDark = isSystemInDarkTheme()
@@ -33,7 +40,7 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.LIGHT -> false
                 ThemeMode.DARK -> true
             }
-            // Icônes de la barre d'état lisibles même quand le thème choisi diffère de celui du système.
+            // Status bar icons stay readable when the chosen theme differs from the system one.
             LaunchedEffect(dark) {
                 val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT)
                 else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
@@ -46,6 +53,16 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         vm.handleIntent(intent)
+    }
+
+    /** Android 13+: asked once, so the background check can post the "update available" notification. */
+    private fun askNotificationsOnce() {
+        if (Build.VERSION.SDK_INT < 33) return
+        if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED) return
+        val prefs = getSharedPreferences("update_notif", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("permissionAsked", false)) return
+        prefs.edit().putBoolean("permissionAsked", true).apply()
+        notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
     }
 
     /** Bluetooth pedal or keyboard: handled here so it does not depend on Compose focus. */

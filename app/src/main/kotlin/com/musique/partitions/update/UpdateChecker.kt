@@ -57,6 +57,11 @@ class UpdateChecker(
         prefs.dismissedAt = clock()
     }
 
+    /** Tapping the update notification shows the banner again even after "Later". */
+    fun undismiss() {
+        prefs.dismissedTag = null
+    }
+
     private fun isDue(now: Long, cached: Boolean): Boolean {
         if (prefs.lastFailure > 0 && now - prefs.lastFailure in 0 until RETRY_MS) return false
         return !cached || now - prefs.lastCheck !in 0 until INTERVAL_MS
