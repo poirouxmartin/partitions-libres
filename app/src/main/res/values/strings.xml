@@ -54,6 +54,7 @@
         <item quantity="other">%d scores</item>
     </plurals>
     <string name="composer_group_other">Other instruments</string>
+    <string name="piece_preview_read">Score preview, tap to read</string>
     <string name="composer_not_found">Composer not found.</string>
     <string name="about_section_third_party">Third-party components</string>
     <string name="about_androidx">AndroidX and Jetpack Compose</string>

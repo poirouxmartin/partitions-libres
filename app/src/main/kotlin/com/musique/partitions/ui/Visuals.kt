@@ -1,12 +1,25 @@
 package com.musique.partitions.ui
 
+import android.util.LruCache
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import com.musique.partitions.PartitionsApp
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,13 +72,48 @@ fun ComposerAvatar(name: String, sort: String, size: Dp = 40.dp) {
     }
 }
 
-/** Thumbnail of a piece: instrument pictogram on the composer's tint. */
+/** Badge of a piece: instrument pictogram on the composer's tint; [family] (the active filter) wins when the piece has it. */
 @Composable
-fun PieceBadge(piece: Piece, size: Dp = 48.dp) {
+fun PieceBadge(piece: Piece, size: Dp = 48.dp, family: InstrumentFamily? = null) {
+    val families = InstrumentFamily.of(piece.instruments)
+    val shown = family?.takeIf { it in families } ?: families.firstOrNull()
     Box(
         Modifier.size(size).clip(RoundedCornerShape(size * 0.28f)).background(inkFor(piece.composerSort).copy(alpha = 0.18f)),
         contentAlignment = Alignment.Center,
     ) {
-        Text(piece.pictogram(), fontSize = (size.value * 0.5f).sp)
+        Text(shown?.emoji ?: "🎼", fontSize = (size.value * 0.5f).sp)
     }
+}
+
+private val thumbCache = LruCache<String, ImageBitmap>(40)
+
+/** Decoded preview of [id] (memory cache, then disk), or null while loading or when absent. */
+@Composable
+fun rememberThumbnail(id: String, hasThumb: Boolean): ImageBitmap? {
+    if (!hasThumb) return null
+    val app = LocalContext.current.applicationContext as PartitionsApp
+    val bitmap by produceState(thumbCache.get(id), id) {
+        if (value == null) {
+            value = withContext(Dispatchers.IO) { app.thumbnailStore.load(id)?.asImageBitmap() }?.also { thumbCache.put(id, it) }
+        }
+    }
+    return bitmap
+}
+
+/** Preview of the first system when available, otherwise the pictogram badge. */
+@Composable
+fun PieceThumb(piece: Piece, size: Dp, family: InstrumentFamily? = null, hasThumb: Boolean) {
+    val bitmap = rememberThumbnail(piece.id, hasThumb)
+    if (bitmap == null) {
+        PieceBadge(piece, size, family)
+        return
+    }
+    val shape = RoundedCornerShape(size * 0.18f)
+    Image(
+        bitmap,
+        contentDescription = null,
+        modifier = Modifier.size(size).clip(shape).background(Color.White).border(1.dp, MaterialTheme.colorScheme.outline, shape),
+        contentScale = ContentScale.Crop,
+        alignment = Alignment.TopStart,
+    )
 }

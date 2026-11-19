@@ -26,6 +26,7 @@ fun ComposerScreen(vm: MainViewModel, sort: String) {
     val catalogState by vm.catalog.collectAsStateWithLifecycle()
     val saved by vm.savedPieces.collectAsStateWithLifecycle()
     val library by vm.library.collectAsStateWithLifecycle()
+    val thumbs by vm.thumbnails.collectAsStateWithLifecycle()
     val ready = catalogState as? CatalogState.Ready
     val composer = remember(ready) { ready?.data?.composers?.firstOrNull { it.sort == sort } }
     val groups = remember(ready, sort) { ready?.let { ComposerWorks.of(it.data.catalog.pieces, sort) }.orEmpty() }
@@ -61,7 +62,7 @@ fun ComposerScreen(vm: MainViewModel, sort: String) {
                             SectionTitle("${g.family?.emoji ?: "🎼"}  $name (${g.pieces.size})")
                         }
                         items(g.pieces, key = { it.id }) { p ->
-                            PieceRow(p, p.id in savedIds, p.id in favIds) { vm.push(Screen.Piece(p.id)) }
+                            PieceRow(p, p.id in savedIds, p.id in favIds, hasThumb = p.id in thumbs) { vm.push(Screen.Piece(p.id)) }
                         }
                     }
                 }

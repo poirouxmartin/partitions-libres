@@ -2,7 +2,18 @@
 
 package com.musique.partitions.ui
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -58,6 +69,9 @@ fun PieceScreen(vm: MainViewModel, id: String) {
     // lookup is redone once the catalogue has loaded.
     val piece = remember(catalog, saved, id) { vm.pieceById(id) }
     val favourite = id in library.favourites
+    val thumbs by vm.thumbnails.collectAsStateWithLifecycle()
+    val inFlight by vm.thumbnailsInFlight.collectAsStateWithLifecycle()
+    LaunchedEffect(piece?.id) { piece?.let(vm::ensureThumbnail) }
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -82,6 +96,8 @@ fun PieceScreen(vm: MainViewModel, id: String) {
                     isSaved = saved.any { it.id == id },
                     progress = downloads[id],
                     error = error,
+                    hasThumb = id in thumbs,
+                    thumbPending = id in inFlight,
                     onRead = { vm.push(Screen.Viewer(id)) },
                     onSave = { vm.save(piece) },
                     onDelete = { vm.delete(piece) },
@@ -100,6 +116,8 @@ private fun PieceContent(
     isSaved: Boolean,
     progress: Float?,
     @StringRes error: Int?,
+    hasThumb: Boolean,
+    thumbPending: Boolean,
     onRead: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -108,8 +126,27 @@ private fun PieceContent(
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
     ) {
+        val preview = rememberThumbnail(piece.id, hasThumb)
+        val previewShape = RoundedCornerShape(12.dp)
+        if (preview != null) {
+            Image(
+                preview,
+                contentDescription = stringResource(R.string.piece_preview_read),
+                modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp).clip(previewShape).background(Color.White)
+                    .border(1.dp, MaterialTheme.colorScheme.outline, previewShape).clickable(onClick = onRead),
+                contentScale = ContentScale.FillWidth,
+            )
+        } else if (thumbPending || hasThumb) {
+            Box(
+                Modifier.fillMaxWidth().padding(bottom = 16.dp).height(120.dp).clip(previewShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                contentAlignment = Alignment.Center,
+            ) {
+                CircularProgressIndicator(Modifier.size(24.dp), strokeWidth = 2.dp)
+            }
+        }
         Row(verticalAlignment = Alignment.CenterVertically) {
-            PieceBadge(piece, size = 72.dp)
+            if (preview == null && !thumbPending && !hasThumb) PieceBadge(piece, size = 72.dp)
             Column(Modifier.weight(1f).padding(start = 16.dp)) {
                 Text(piece.title, style = MaterialTheme.typography.headlineSmall, maxLines = 3, overflow = TextOverflow.Ellipsis)
                 if (piece.work.isNotEmpty() && piece.work != piece.title) {

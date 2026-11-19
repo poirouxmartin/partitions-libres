@@ -66,6 +66,7 @@ fun HomeScreen(vm: MainViewModel) {
     val catalog by vm.catalog.collectAsStateWithLifecycle()
     val results by vm.results.collectAsStateWithLifecycle()
     val saved by vm.savedPieces.collectAsStateWithLifecycle()
+    val thumbs by vm.thumbnails.collectAsStateWithLifecycle()
     val library by vm.library.collectAsStateWithLifecycle()
     val update by vm.update.collectAsStateWithLifecycle()
     val installing by vm.installing.collectAsStateWithLifecycle()
@@ -124,9 +125,9 @@ fun HomeScreen(vm: MainViewModel) {
                 )
                 is CatalogState.Ready -> {
                     if (query.isBlank() && family == null) {
-                        BrowseList(vm, c, library, saved, savedIds, favIds)
+                        BrowseList(vm, c, library, saved, savedIds, favIds, thumbs)
                     } else {
-                        ResultList(vm, results, savedIds, favIds, onReset = { vm.setQuery(""); vm.setFamily(null) })
+                        ResultList(vm, results, savedIds, favIds, family, thumbs, onReset = { vm.setQuery(""); vm.setFamily(null) })
                     }
                 }
             }
@@ -201,6 +202,7 @@ private fun BrowseList(
     saved: List<Piece>,
     savedIds: Set<String>,
     favIds: Set<String>,
+    thumbs: Set<String>,
 ) {
     val recents = remember(library, c) { library.recents.mapNotNull { vm.pieceById(it) } }
     val favourites = remember(library, c, saved) { library.favourites.mapNotNull { vm.pieceById(it) } }
@@ -221,13 +223,13 @@ private fun BrowseList(
             }
         }
         if (favourites.isNotEmpty()) {
-            item(key = "fav") { Shelf(Icons.Default.Favorite, R.string.home_shelf_favorites, favourites, savedIds, favIds, open) }
+            item(key = "fav") { Shelf(Icons.Default.Favorite, R.string.home_shelf_favorites, favourites, savedIds, favIds, thumbs, open) }
         }
         if (recents.size > 1) {
-            item(key = "rec") { Shelf(Icons.Default.Refresh, R.string.home_shelf_recent, recents.drop(1), savedIds, favIds, open) }
+            item(key = "rec") { Shelf(Icons.Default.Refresh, R.string.home_shelf_recent, recents.drop(1), savedIds, favIds, thumbs, open) }
         }
         if (saved.isNotEmpty()) {
-            item(key = "off") { Shelf(Icons.Default.CheckCircle, R.string.common_offline, saved, savedIds, favIds, open) }
+            item(key = "off") { Shelf(Icons.Default.CheckCircle, R.string.common_offline, saved, savedIds, favIds, thumbs, open) }
         }
         item(key = "comp-title") { SectionTitle(stringResource(R.string.home_composers), Modifier.padding(horizontal = 16.dp)) }
         items(c.data.composers, key = { "c-" + it.sort }) { comp ->
@@ -319,6 +321,7 @@ private fun Shelf(
     pieces: List<Piece>,
     savedIds: Set<String>,
     favIds: Set<String>,
+    thumbs: Set<String>,
     onOpen: (Piece) -> Unit,
 ) {
     Column {
@@ -331,13 +334,13 @@ private fun Shelf(
             )
         }
         LazyRow(contentPadding = PaddingValues(horizontal = 16.dp), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            items(pieces, key = { it.id }) { p -> PieceTile(p, p.id in savedIds, p.id in favIds) { onOpen(p) } }
+            items(pieces, key = { it.id }) { p -> PieceTile(p, p.id in savedIds, p.id in favIds, p.id in thumbs) { onOpen(p) } }
         }
     }
 }
 
 @Composable
-private fun PieceTile(piece: Piece, saved: Boolean, favourite: Boolean, onClick: () -> Unit) {
+private fun PieceTile(piece: Piece, saved: Boolean, favourite: Boolean, hasThumb: Boolean, onClick: () -> Unit) {
     Card(
         modifier = Modifier.width(140.dp).clickable(onClick = onClick),
         shape = MaterialTheme.shapes.medium,
@@ -345,7 +348,7 @@ private fun PieceTile(piece: Piece, saved: Boolean, favourite: Boolean, onClick:
     ) {
         Column(Modifier.padding(10.dp)) {
             Row(verticalAlignment = Alignment.Top) {
-                PieceBadge(piece, size = 44.dp)
+                PieceThumb(piece, size = 44.dp, hasThumb = hasThumb)
                 Spacer(Modifier.weight(1f))
                 StatusIcons(saved, favourite)
             }
@@ -380,7 +383,15 @@ internal fun StatusIcons(saved: Boolean, favourite: Boolean) {
 }
 
 @Composable
-private fun ResultList(vm: MainViewModel, results: List<Piece>, savedIds: Set<String>, favIds: Set<String>, onReset: () -> Unit) {
+private fun ResultList(
+    vm: MainViewModel,
+    results: List<Piece>,
+    savedIds: Set<String>,
+    favIds: Set<String>,
+    family: InstrumentFamily?,
+    thumbs: Set<String>,
+    onReset: () -> Unit,
+) {
     if (results.isEmpty()) {
         // No dead end: one action to get going again.
         Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -404,18 +415,27 @@ private fun ResultList(vm: MainViewModel, results: List<Piece>, savedIds: Set<St
             )
         }
         items(results, key = { it.id }) { p ->
-            PieceRow(p, saved = p.id in savedIds, favourite = p.id in favIds) { vm.push(Screen.Piece(p.id)) }
+            PieceRow(p, saved = p.id in savedIds, favourite = p.id in favIds, family = family, hasThumb = p.id in thumbs) {
+                vm.push(Screen.Piece(p.id))
+            }
         }
     }
 }
 
 @Composable
-internal fun PieceRow(piece: Piece, saved: Boolean, favourite: Boolean, onClick: () -> Unit) {
+internal fun PieceRow(
+    piece: Piece,
+    saved: Boolean,
+    favourite: Boolean,
+    family: InstrumentFamily? = null,
+    hasThumb: Boolean = false,
+    onClick: () -> Unit,
+) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        PieceBadge(piece)
+        PieceThumb(piece, size = 56.dp, family = family, hasThumb = hasThumb)
         Column(Modifier.weight(1f).padding(start = 12.dp)) {
             Text(
                 piece.title,
@@ -433,6 +453,15 @@ internal fun PieceRow(piece: Piece, saved: Boolean, favourite: Boolean, onClick:
                     overflow = TextOverflow.Ellipsis,
                 )
                 LicenceChip(piece.shortLicence())
+            }
+            if (piece.instruments.isNotBlank()) {
+                Text(
+                    piece.instruments,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
             }
         }
         StatusIcons(saved, favourite)

@@ -57,6 +57,11 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val library = MutableStateFlow(Library())
     val family = MutableStateFlow<InstrumentFamily?>(null)
 
+    /** Ids with a stored preview, previews being generated, and generations that failed (offline...). */
+    val thumbnails = MutableStateFlow<Set<String>>(emptySet())
+    val thumbnailsInFlight = MutableStateFlow<Set<String>>(emptySet())
+    val thumbnailFailures = MutableStateFlow<Set<String>>(emptySet())
+
     /** Loaded synchronously: the theme must be known before the first frame. */
     val settings = MutableStateFlow(app.settingsStore.load())
 
@@ -100,7 +105,24 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
         viewModelScope.launch { library.value = withContext(Dispatchers.IO) { app.libraryStore.load() } }
+        viewModelScope.launch { thumbnails.value = withContext(Dispatchers.IO) { app.thumbnailStore.ids() } }
         refreshSaved()
+    }
+
+    /** Only from the piece page and the viewer: lists never trigger a download. */
+    fun ensureThumbnail(piece: Piece) {
+        val id = piece.id
+        if (id in thumbnails.value || id in thumbnailsInFlight.value) return
+        thumbnailsInFlight.update { it + id }
+        thumbnailFailures.update { it - id }
+        viewModelScope.launch {
+            val bitmap = makeThumbnail(app, piece)
+            val stored = bitmap != null && runCatching {
+                withContext(Dispatchers.IO) { app.thumbnailStore.save(id, bitmap) }
+            }.isSuccess
+            if (stored) thumbnails.update { it + id } else thumbnailFailures.update { it + id }
+            thumbnailsInFlight.update { it - id }
+        }
     }
 
     fun toggleFavourite(id: String) = updateLibrary { it.toggleFavourite(id) }

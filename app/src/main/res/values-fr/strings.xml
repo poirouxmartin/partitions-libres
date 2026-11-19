@@ -51,6 +51,7 @@
         <item quantity="other">%d partitions</item>
     </plurals>
     <string name="composer_group_other">Autres formations</string>
+    <string name="piece_preview_read">Aperçu de la partition, toucher pour lire</string>
     <string name="composer_not_found">Compositeur introuvable.</string>
     <string name="about_section_third_party">Composants tiers</string>
     <string name="about_androidx">AndroidX et Jetpack Compose</string>

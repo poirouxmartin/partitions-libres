@@ -48,6 +48,7 @@ fun FavouritesScreen(vm: MainViewModel) {
     val library by vm.library.collectAsStateWithLifecycle()
     val catalog by vm.catalog.collectAsStateWithLifecycle()
     val saved by vm.savedPieces.collectAsStateWithLifecycle()
+    val thumbs by vm.thumbnails.collectAsStateWithLifecycle()
     val pieces = remember(library, catalog, saved) { library.favourites.mapNotNull { vm.pieceById(it) } }
     val snackbar = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -94,7 +95,7 @@ fun FavouritesScreen(vm: MainViewModel) {
                             Modifier.fillMaxWidth().clickable { vm.push(Screen.Piece(p.id)) }.padding(vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
-                            PieceBadge(p)
+                            PieceThumb(p, size = 56.dp, hasThumb = p.id in thumbs)
                             Column(Modifier.weight(1f).padding(start = 12.dp)) {
                                 Text(
                                     p.title,

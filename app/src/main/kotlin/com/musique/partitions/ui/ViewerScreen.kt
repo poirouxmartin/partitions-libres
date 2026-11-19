@@ -96,6 +96,7 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
     // so a lookup that only depends on states read there would never be refreshed.
     val piece = remember(catalog, saved, id) { vm.pieceById(id) }
     val settings by vm.settings.collectAsStateWithLifecycle()
+    LaunchedEffect(piece?.id) { piece?.let(vm::ensureThumbnail) }
 
     Scaffold(
         containerColor = if (settings.paper.isDark) Color(0xFF111317) else MaterialTheme.colorScheme.background,
