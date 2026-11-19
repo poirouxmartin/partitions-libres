@@ -5,6 +5,8 @@ import com.musique.partitions.data.CatalogRepository
 import com.musique.partitions.data.HttpFetcher
 import com.musique.partitions.data.LibraryStore
 import com.musique.partitions.data.ScoreStore
+import com.musique.partitions.data.SettingsStore
+import com.musique.partitions.data.SharedPrefsKeyValues
 import com.musique.partitions.update.SharedPrefsUpdatePrefs
 import com.musique.partitions.update.UpdateChecker
 import com.musique.partitions.update.UpdateInstaller
@@ -21,6 +23,7 @@ class PartitionsApp : Application() {
     val catalogRepository by lazy { CatalogRepository(this) }
     val scoreStore by lazy { ScoreStore(File(filesDir, "scores"), File(cacheDir, "scores"), fetcher) }
     val libraryStore by lazy { LibraryStore(File(filesDir, "library.json")) }
+    val settingsStore by lazy { SettingsStore(SharedPrefsKeyValues(this)) }
     val updateChecker by lazy {
         UpdateChecker(fetcher, SharedPrefsUpdatePrefs(this), System::currentTimeMillis, BuildConfig.VERSION_NAME, BuildConfig.UPDATE_REPO)
     }
