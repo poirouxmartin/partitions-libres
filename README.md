@@ -1,23 +1,23 @@
 # Partitions libres (Android)
 
-Lecteur de partitions sous licence libre : recherche dans un catalogue, fiche de chaque pièce, lecture hors ligne (PDF et MusicXML rendu par Verovio), tourne-pages au toucher ou à la pédale.
+Open-licence score reader: search a catalogue, a page for each piece, offline reading (PDF and MusicXML rendered by Verovio), page turns by touch or pedal.
 
-Seules des partitions du domaine public ou sous licence CC0, CC BY et CC BY-SA sont proposées, jamais NC ni ND. Chaque pièce garde sa licence, son graveur, sa source et son édition, et les fichiers sont servis sans modification.
+Only public domain or CC0, CC BY and CC BY-SA scores are offered, never NC or ND. Each piece keeps its licence, engraver, source and edition, and files are served unmodified.
 
 ## Installation
 
-Télécharger le fichier APK de la dernière version sur la page des [releases](https://github.com/poirouxmartin/partitions-libres/releases/latest), puis l'ouvrir sur le téléphone (autoriser l'installation d'applis inconnues si Android le demande). L'appli propose ensuite elle-même les mises à jour.
+Download the APK of the latest version from the [releases](https://github.com/poirouxmartin/partitions-libres/releases/latest) page, then open it on the phone (allow installing unknown apps if Android asks). The app then updates itself.
 
-## Avertissement
+## Disclaimer
 
-Projet personnel, fourni tel quel, sans garantie d'aucune sorte. Les métadonnées et les licences des partitions viennent de leurs sources (notamment Mutopia) : vérifier la licence d'une pièce avant de la réutiliser.
+Personal project, provided as is, without any warranty. Score metadata and licences come from their sources (Mutopia in particular): check a piece's licence before reusing it.
 
-## Développement
+## Development
 
-- Modules : `catalog/` (Kotlin pur : modèle, recherche, releases), `render/` (bibliothèque Android, Verovio en JNI), `app/` (interface Compose).
-- Avant le premier build : `render/fetch-verovio.ps1`. Tests et build : `gradlew.bat :catalog:test :render:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug`.
-- La clé de signature release est lue hors du dépôt (`~/.android/keys/partitions-libres/signing.properties`). Sans elle, l'APK release est signé avec la clé debug et ne doit pas être publié.
+- Modules: `catalog/` (pure Kotlin: model, search, releases), `render/` (Android library, Verovio over JNI), `app/` (Compose UI).
+- Before the first build: `render/fetch-verovio.ps1`. Tests and build: `gradlew.bat :catalog:test :render:testDebugUnitTest :app:testDebugUnitTest :app:assembleDebug`.
+- The release signing key is read from outside the repository (`~/.android/keys/partitions-libres/signing.properties`). Without it, the release APK is signed with the debug key and must not be published.
 
 ## Licence
 
-Code : MIT, voir [LICENSE](LICENSE). Verovio (téléchargé au build, non versionné) : LGPL-3.0. Chaque partition garde sa propre licence, indiquée dans l'appli.
+Code: MIT, see [LICENSE](LICENSE). Verovio (downloaded at build time, not versioned): LGPL-3.0. Each score keeps its own licence, shown in the app.
