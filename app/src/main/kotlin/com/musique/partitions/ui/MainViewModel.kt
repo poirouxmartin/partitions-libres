@@ -34,6 +34,7 @@ sealed interface Screen {
     data object Home : Screen
     data class Piece(val id: String) : Screen
     data class Viewer(val id: String) : Screen
+    data class Composer(val sort: String) : Screen
     data object About : Screen
     data object Favourites : Screen
     data object Settings : Screen
@@ -145,6 +146,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
         intent.getStringExtra("query")?.let { query.value = it }
         intent.getStringExtra("open")?.let { stack.value = listOf(Screen.Home, Screen.Piece(it)) }
+        intent.getStringExtra("composer")?.let { stack.value = listOf(Screen.Home, Screen.Composer(it)) }
         when (intent.getStringExtra("tab")) {
             "favoris" -> openTab(Screen.Favourites)
             "reglages" -> openTab(Screen.Settings)

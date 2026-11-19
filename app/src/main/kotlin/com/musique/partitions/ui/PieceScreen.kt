@@ -2,6 +2,7 @@
 
 package com.musique.partitions.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
@@ -83,6 +85,7 @@ fun PieceScreen(vm: MainViewModel, id: String) {
                     onRead = { vm.push(Screen.Viewer(id)) },
                     onSave = { vm.save(piece) },
                     onDelete = { vm.delete(piece) },
+                    onComposer = { vm.push(Screen.Composer(piece.composerSort)) },
                 )
                 catalog is CatalogState.Loading -> CenteredLoading()
                 else -> CenteredMessage(stringResource(R.string.common_piece_not_found))
@@ -100,6 +103,7 @@ private fun PieceContent(
     onRead: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
+    onComposer: () -> Unit,
 ) {
     Column(
         Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 4.dp),
@@ -119,14 +123,15 @@ private fun PieceContent(
                 }
             }
         }
-        Row(Modifier.padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(Modifier.fillMaxWidth().padding(top = 16.dp).clickable(onClick = onComposer), verticalAlignment = Alignment.CenterVertically) {
             ComposerAvatar(piece.composer, piece.composerSort, size = 36.dp)
-            Column(Modifier.padding(start = 10.dp)) {
+            Column(Modifier.weight(1f).padding(start = 10.dp)) {
                 Text(piece.composer, style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                 if (piece.lifeDates.isNotEmpty()) {
                     Text(piece.lifeDates, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         FlowRow(
             Modifier.padding(top = 14.dp),

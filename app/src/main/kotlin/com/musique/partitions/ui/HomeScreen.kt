@@ -19,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
@@ -152,7 +153,7 @@ private fun FamilyChips(selected: InstrumentFamily?, counts: Map<InstrumentFamil
 }
 
 @StringRes
-private fun InstrumentFamily.labelRes(): Int = when (this) {
+internal fun InstrumentFamily.labelRes(): Int = when (this) {
     InstrumentFamily.VOICE -> R.string.home_family_voice
     InstrumentFamily.PIANO -> R.string.home_family_piano
     InstrumentFamily.ORGAN -> R.string.home_family_organ
@@ -231,7 +232,7 @@ private fun BrowseList(
         item(key = "comp-title") { SectionTitle(stringResource(R.string.home_composers), Modifier.padding(horizontal = 16.dp)) }
         items(c.data.composers, key = { "c-" + it.sort }) { comp ->
             Row(
-                Modifier.fillMaxWidth().clickable { vm.setQuery(comp.name) }.padding(horizontal = 16.dp, vertical = 6.dp),
+                Modifier.fillMaxWidth().clickable { vm.push(Screen.Composer(comp.sort)) }.padding(horizontal = 16.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 ComposerAvatar(comp.name, comp.sort)
@@ -242,6 +243,7 @@ private fun BrowseList(
                     }
                 }
                 CountPill(comp.count)
+                Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }

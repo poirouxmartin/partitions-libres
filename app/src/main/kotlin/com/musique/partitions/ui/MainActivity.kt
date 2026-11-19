@@ -95,6 +95,7 @@ private fun AppRoot(vm: MainViewModel) {
         Screen.Home -> HomeScreen(vm)
         is Screen.Piece -> PieceScreen(vm, screen.id)
         is Screen.Viewer -> ViewerScreen(vm, screen.id)
+        is Screen.Composer -> ComposerScreen(vm, screen.sort)
         Screen.About -> AboutScreen(vm)
         Screen.Favourites -> FavouritesScreen(vm)
         Screen.Settings -> SettingsScreen(vm)

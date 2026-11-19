@@ -46,6 +46,12 @@
     <string name="about_licence_per_piece">%1$s (selon la partition)</string>
     <string name="licence_public_domain">Domaine public</string>
     <string name="licence_cc0">CC0 1.0 (domaine public)</string>
+    <plurals name="composer_scores">
+        <item quantity="one">%d partition</item>
+        <item quantity="other">%d partitions</item>
+    </plurals>
+    <string name="composer_group_other">Autres formations</string>
+    <string name="composer_not_found">Compositeur introuvable.</string>
     <string name="about_section_third_party">Composants tiers</string>
     <string name="about_androidx">AndroidX et Jetpack Compose</string>
     <string name="about_verovio_notice">Verovio est lié dynamiquement ; ses sources sont disponibles sur le site du projet.</string>

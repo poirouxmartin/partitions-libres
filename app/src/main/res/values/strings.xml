@@ -49,6 +49,12 @@
     <string name="about_licence_per_piece">%1$s (per piece)</string>
     <string name="licence_public_domain">Public domain</string>
     <string name="licence_cc0">CC0 1.0 (public domain)</string>
+    <plurals name="composer_scores">
+        <item quantity="one">%d score</item>
+        <item quantity="other">%d scores</item>
+    </plurals>
+    <string name="composer_group_other">Other instruments</string>
+    <string name="composer_not_found">Composer not found.</string>
     <string name="about_section_third_party">Third-party components</string>
     <string name="about_androidx">AndroidX and Jetpack Compose</string>
     <string name="about_verovio_notice">Verovio is dynamically linked; its sources are available on the project website.</string>
