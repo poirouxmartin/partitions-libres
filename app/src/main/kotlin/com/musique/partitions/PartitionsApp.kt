@@ -13,6 +13,7 @@ import com.musique.partitions.update.UpdateCheckWorker
 import com.musique.partitions.update.UpdateInstaller
 import com.musique.partitions.update.UpdateNotifier
 import com.musique.render.ScoreRenderer
+import com.musique.render.SvgPages
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.File
 import java.util.concurrent.Executors
@@ -39,5 +40,6 @@ class PartitionsApp : Application() {
         super.onCreate()
         UpdateCheckWorker.cancel(this) // background check disabled, see UpdateCheckWorker
         UpdateNotifier(this).clearIfInstalled()
+        SvgPages.installTextFonts(this)
     }
 }
