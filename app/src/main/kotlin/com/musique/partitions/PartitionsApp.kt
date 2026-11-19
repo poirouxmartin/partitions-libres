@@ -7,7 +7,9 @@ import com.musique.partitions.data.LibraryStore
 import com.musique.partitions.data.ScoreStore
 import com.musique.partitions.update.SharedPrefsUpdatePrefs
 import com.musique.partitions.update.UpdateChecker
+import com.musique.partitions.update.UpdateCheckWorker
 import com.musique.partitions.update.UpdateInstaller
+import com.musique.partitions.update.UpdateNotifier
 import com.musique.render.ScoreRenderer
 import kotlinx.coroutines.asCoroutineDispatcher
 import java.io.File
@@ -29,4 +31,10 @@ class PartitionsApp : Application() {
     /** Verovio is not thread-safe: one thread, one engine for the whole application. */
     val renderDispatcher by lazy { Executors.newSingleThreadExecutor().asCoroutineDispatcher() }
     val renderer by lazy { ScoreRenderer(this) }
+
+    override fun onCreate() {
+        super.onCreate()
+        UpdateCheckWorker.schedule(this)
+        UpdateNotifier(this).clearIfInstalled()
+    }
 }

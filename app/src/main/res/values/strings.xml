@@ -2,4 +2,7 @@
 <resources>
     <!-- Nom provisoire : seul endroit où il est défini (UI, manifeste, User-Agent le lisent d'ici). -->
     <string name="app_name">Partitions libres</string>
+    <string name="update_channel_name">App updates</string>
+    <string name="update_notif_title">Update available: %1$s</string>
+    <string name="update_notif_text">Tap to install it.</string>
 </resources>
