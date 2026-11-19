@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="common_back">Retour</string>
+    <string name="common_read">Lire</string>
+    <string name="common_offline">Hors ligne</string>
+    <string name="common_favorite">Favori</string>
+    <string name="common_piece_not_found">Partition introuvable.</string>
+    <string name="common_error_unknown">erreur inconnue</string>
+
+    <string name="about_title">À propos et licences</string>
+    <string name="about_version">Version %1$s</string>
+    <string name="about_section_catalog">Catalogue</string>
+    <plurals name="about_catalog_summary">
+        <item quantity="one">%1$d partition, catalogue généré le %2$s.</item>
+        <item quantity="other">%1$d partitions, catalogue généré le %2$s.</item>
+    </plurals>
+    <string name="about_section_sources">Sources</string>
+    <string name="about_section_licenses">Partitions par licence</string>
+    <string name="about_sources_notice">Les fichiers proviennent d\'OpenScore (CC0) et de Mutopia (licence propre à chaque partition). Ils sont téléchargés et conservés tels quels, sans modification.</string>
+    <string name="about_section_third_party">Composants tiers</string>
+    <string name="about_androidx">AndroidX et Jetpack Compose</string>
+    <string name="about_verovio_notice">Verovio est lié dynamiquement ; ses sources sont disponibles sur le site du projet.</string>
+
+    <string name="home_search_hint">Compositeur, titre…</string>
+    <string name="home_clear">Effacer</string>
+    <string name="home_catalog_failed">Le catalogue n\'a pas pu être chargé (%1$s).</string>
+    <string name="home_update_available">Version %1$s disponible</string>
+    <string name="home_update_later">Plus tard</string>
+    <string name="home_update_install">Installer</string>
+    <string name="home_update_downloading">Téléchargement…</string>
+    <string name="home_shelf_favorites">Favoris</string>
+    <string name="home_shelf_recent">Récents</string>
+    <string name="home_composers">Compositeurs</string>
+    <string name="home_resume">Reprendre</string>
+    <string name="home_piece_of_the_day">Partition du jour</string>
+    <string name="home_daily">Du jour</string>
+    <string name="home_no_results">Aucun résultat</string>
+    <string name="home_clear_all">Tout effacer</string>
+    <string name="home_family_voice">Chant</string>
+    <string name="home_family_piano">Piano</string>
+    <string name="home_family_organ">Orgue</string>
+    <string name="home_family_guitar">Guitare</string>
+    <string name="home_family_strings">Cordes</string>
+    <string name="home_family_winds">Vents</string>
+
+    <string name="piece_add_favorite">Ajouter aux favoris</string>
+    <string name="piece_remove_favorite">Retirer des favoris</string>
+    <string name="piece_delete_offline">Supprimer du téléphone</string>
+    <string name="piece_keep_offline">Garder hors ligne</string>
+    <string name="piece_download_percent">%1$d %%</string>
+    <string name="piece_download_failed">Téléchargement impossible. Vérifiez la connexion.</string>
+    <string name="piece_format_adapted">Adaptée à l\'écran</string>
+    <string name="piece_format_pdf">PDF gravé</string>
+    <string name="piece_free_title">Gratuite et libre</string>
+    <string name="piece_engraver">Gravure : %1$s</string>
+    <string name="piece_source_label">Source :</string>
+    <string name="piece_original_edition">Édition d\'origine : %1$s</string>
+    <string name="piece_sharealike_note">Fichier diffusé tel quel, sans modification.</string>
+
+    <string name="viewer_title_fallback">Partition</string>
+    <string name="viewer_attribution">%1$s · Gravure : %2$s · Source : %3$s</string>
+    <string name="viewer_error_offline">Pas de connexion. Téléchargez la partition pour la lire hors ligne.</string>
+    <string name="viewer_error_open">Impossible d\'ouvrir la partition (%1$s).</string>
+    <string name="viewer_error_render">Impossible d\'afficher cette partition (%1$s).</string>
+
+    <string name="update_need_permission">Autorisez l\'installation pour cette appli, puis touchez à nouveau Installer.</string>
+    <string name="update_download_failed">Téléchargement impossible. Réessayez plus tard.</string>
+    <string name="update_refused">Fichier de mise à jour refusé.</string>
+</resources>

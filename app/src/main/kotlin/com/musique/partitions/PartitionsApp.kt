@@ -29,7 +29,7 @@ class PartitionsApp : Application() {
     }
     val updateInstaller by lazy { UpdateInstaller(this, fetcher, updateChecker.apkUrlPrefix) }
 
-    /** Verovio n'est pas thread-safe : un seul thread, un seul moteur pour toute l'application. */
+    /** Verovio is not thread-safe: one thread, one engine for the whole application. */
     val renderDispatcher by lazy { Executors.newSingleThreadExecutor().asCoroutineDispatcher() }
     val renderer by lazy { ScoreRenderer(this) }
 }

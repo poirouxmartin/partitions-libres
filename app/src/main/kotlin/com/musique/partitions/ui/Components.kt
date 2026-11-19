@@ -6,6 +6,7 @@ import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -40,24 +41,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.musique.partitions.R
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ScoreFormat
 
 fun Piece.shortLicence(): String = if (licence == "CC0-1.0") "CC0" else licenceLabel
 
-fun Piece.formatLine(): String = when (format) {
-    ScoreFormat.MUSICXML -> "Adaptée à l'écran"
-    ScoreFormat.PDF -> "PDF gravé"
+@StringRes
+fun Piece.formatLineRes(): Int = when (format) {
+    ScoreFormat.MUSICXML -> R.string.piece_format_adapted
+    ScoreFormat.PDF -> R.string.piece_format_pdf
 }
 
 fun openUrl(context: Context, url: String) {
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     } catch (e: ActivityNotFoundException) {
-        // Pas de navigateur : rien à faire.
+        // No browser: nothing to do.
     }
 }
 
@@ -84,7 +88,7 @@ fun AppTopBar(
             }
         },
         navigationIcon = {
-            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour") }
+            IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.common_back)) }
         },
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),

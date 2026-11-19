@@ -1,5 +1,6 @@
 package com.musique.partitions.ui
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -91,12 +92,12 @@ fun HomeScreen(vm: MainViewModel) {
                 value = query,
                 onValueChange = vm::setQuery,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
-                placeholder = { Text("Compositeur, titre…") },
+                placeholder = { Text(stringResource(R.string.home_search_hint)) },
                 leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
                 trailingIcon = {
                     if (query.isNotEmpty()) {
                         IconButton(onClick = { vm.setQuery("") }) {
-                            Icon(Icons.Default.Clear, contentDescription = "Effacer")
+                            Icon(Icons.Default.Clear, contentDescription = stringResource(R.string.home_clear))
                         }
                     }
                 },
@@ -117,7 +118,9 @@ fun HomeScreen(vm: MainViewModel) {
             }
             when (val c = catalog) {
                 CatalogState.Loading -> CenteredLoading()
-                is CatalogState.Failed -> CenteredMessage("Le catalogue n'a pas pu être chargé (${c.message}).")
+                is CatalogState.Failed -> CenteredMessage(
+                    stringResource(R.string.home_catalog_failed, c.message ?: stringResource(R.string.common_error_unknown)),
+                )
                 is CatalogState.Ready -> {
                     if (query.isBlank() && family == null) {
                         BrowseList(vm, c, library, saved, savedIds, favIds)
@@ -140,7 +143,7 @@ private fun FamilyChips(selected: InstrumentFamily?, counts: Map<InstrumentFamil
             FilterChip(
                 selected = f == selected,
                 onClick = { onSelect(if (f == selected) null else f) },
-                label = { Text(f.label) },
+                label = { Text(stringResource(f.labelRes())) },
                 leadingIcon = { Text(f.emoji, fontSize = 18.sp) },
                 shape = MaterialTheme.shapes.large,
             )
@@ -148,8 +151,18 @@ private fun FamilyChips(selected: InstrumentFamily?, counts: Map<InstrumentFamil
     }
 }
 
+@StringRes
+private fun InstrumentFamily.labelRes(): Int = when (this) {
+    InstrumentFamily.VOICE -> R.string.home_family_voice
+    InstrumentFamily.PIANO -> R.string.home_family_piano
+    InstrumentFamily.ORGAN -> R.string.home_family_organ
+    InstrumentFamily.GUITAR -> R.string.home_family_guitar
+    InstrumentFamily.STRINGS -> R.string.home_family_strings
+    InstrumentFamily.WINDS -> R.string.home_family_winds
+}
+
 @Composable
-private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, message: String?, onInstall: () -> Unit, onLater: () -> Unit) {
+private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, @StringRes message: Int?, onInstall: () -> Unit, onLater: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp),
         shape = MaterialTheme.shapes.medium,
@@ -157,22 +170,22 @@ private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, message: String
     ) {
         Column(Modifier.padding(start = 16.dp, end = 8.dp, top = 12.dp, bottom = 4.dp)) {
             Text(
-                "Version ${info.tag.removePrefix("v")} disponible",
+                stringResource(R.string.home_update_available, info.tag.removePrefix("v")),
                 style = MaterialTheme.typography.titleSmall,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
             )
-            message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
+            message?.let { Text(stringResource(it), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
-                TextButton(onClick = onLater) { Text("Plus tard") }
+                TextButton(onClick = onLater) { Text(stringResource(R.string.home_update_later)) }
                 Button(onClick = onInstall, enabled = !installing) {
-                    Text(if (installing) "Téléchargement…" else "Installer")
+                    Text(if (installing) stringResource(R.string.home_update_downloading) else stringResource(R.string.home_update_install))
                 }
             }
         }
     }
 }
 
-/** Pièce du jour : la même pour tout le monde un jour donné, pour avoir toujours quelque chose à ouvrir. */
+/** Piece of the day: the same for everyone on a given day, so there is always something to open. */
 private fun pieceOfTheDay(c: CatalogState.Ready): Piece? {
     val pieces = c.data.catalog.pieces
     if (pieces.isEmpty()) return null
@@ -207,15 +220,15 @@ private fun BrowseList(
             }
         }
         if (favourites.isNotEmpty()) {
-            item(key = "fav") { Shelf(Icons.Default.Favorite, "Favoris", favourites, savedIds, favIds, open) }
+            item(key = "fav") { Shelf(Icons.Default.Favorite, R.string.home_shelf_favorites, favourites, savedIds, favIds, open) }
         }
         if (recents.size > 1) {
-            item(key = "rec") { Shelf(Icons.Default.Refresh, "Récents", recents.drop(1), savedIds, favIds, open) }
+            item(key = "rec") { Shelf(Icons.Default.Refresh, R.string.home_shelf_recent, recents.drop(1), savedIds, favIds, open) }
         }
         if (saved.isNotEmpty()) {
-            item(key = "off") { Shelf(Icons.Default.CheckCircle, "Hors ligne", saved, savedIds, favIds, open) }
+            item(key = "off") { Shelf(Icons.Default.CheckCircle, R.string.common_offline, saved, savedIds, favIds, open) }
         }
-        item(key = "comp-title") { SectionTitle("Compositeurs", Modifier.padding(horizontal = 16.dp)) }
+        item(key = "comp-title") { SectionTitle(stringResource(R.string.home_composers), Modifier.padding(horizontal = 16.dp)) }
         items(c.data.composers, key = { "c-" + it.sort }) { comp ->
             Row(
                 Modifier.fillMaxWidth().clickable { vm.setQuery(comp.name) }.padding(horizontal = 16.dp, vertical = 6.dp),
@@ -259,12 +272,12 @@ private fun HeroCard(piece: Piece, resume: Boolean, onRead: () -> Unit, onOpen: 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         if (resume) Icons.Default.Refresh else Icons.Default.Star,
-                        contentDescription = if (resume) "Reprendre" else "Partition du jour",
+                        contentDescription = if (resume) stringResource(R.string.home_resume) else stringResource(R.string.home_piece_of_the_day),
                         tint = MaterialTheme.colorScheme.secondary,
                         modifier = Modifier.size(16.dp),
                     )
                     Text(
-                        if (resume) " Reprendre" else " Du jour",
+                        if (resume) " ${stringResource(R.string.home_resume)}" else " ${stringResource(R.string.home_daily)}",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.secondary,
                     )
@@ -292,7 +305,7 @@ private fun HeroCard(piece: Piece, resume: Boolean, onRead: () -> Unit, onOpen: 
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Lire", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.common_read), style = MaterialTheme.typography.titleMedium)
         }
     }
 }
@@ -300,7 +313,7 @@ private fun HeroCard(piece: Piece, resume: Boolean, onRead: () -> Unit, onOpen: 
 @Composable
 private fun Shelf(
     icon: ImageVector,
-    title: String,
+    @StringRes title: Int,
     pieces: List<Piece>,
     savedIds: Set<String>,
     favIds: Set<String>,
@@ -310,7 +323,7 @@ private fun Shelf(
         Row(Modifier.padding(start = 16.dp, top = 16.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(20.dp))
             Text(
-                "  $title  ${pieces.size}",
+                "  ${stringResource(title)}  ${pieces.size}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
@@ -356,10 +369,10 @@ private fun PieceTile(piece: Piece, saved: Boolean, favourite: Boolean, onClick:
 internal fun StatusIcons(saved: Boolean, favourite: Boolean) {
     Row {
         if (favourite) {
-            Icon(Icons.Default.Favorite, contentDescription = "Favori", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.Favorite, contentDescription = stringResource(R.string.common_favorite), tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
         }
         if (saved) {
-            Icon(Icons.Default.CheckCircle, contentDescription = "Hors ligne", tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(18.dp))
+            Icon(Icons.Default.CheckCircle, contentDescription = stringResource(R.string.common_offline), tint = MaterialTheme.colorScheme.tertiary, modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -367,14 +380,14 @@ internal fun StatusIcons(saved: Boolean, favourite: Boolean) {
 @Composable
 private fun ResultList(vm: MainViewModel, results: List<Piece>, savedIds: Set<String>, favIds: Set<String>, onReset: () -> Unit) {
     if (results.isEmpty()) {
-        // Pas d'impasse : une action pour repartir.
+        // No dead end: one action to get going again.
         Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("🎼", fontSize = 48.sp)
-            Text("Aucun résultat", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.home_no_results), Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleMedium)
             OutlinedButton(onClick = onReset, modifier = Modifier.padding(top = 16.dp)) {
                 Icon(Icons.Default.Clear, contentDescription = null)
                 Spacer(Modifier.width(6.dp))
-                Text("Tout effacer")
+                Text(stringResource(R.string.home_clear_all))
             }
         }
         return

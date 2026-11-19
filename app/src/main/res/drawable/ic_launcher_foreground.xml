@@ -4,19 +4,19 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Feuille crème, coin supérieur droit corné -->
+    <!-- Cream sheet, top-right corner folded -->
     <path
         android:fillColor="#FBF7EF"
         android:pathData="M34,27 L62,27 L74,39 L74,81 L34,81 Z" />
     <path
         android:fillColor="#E3D8C2"
         android:pathData="M62,27 L62,39 L74,39 Z" />
-    <!-- Portée : cinq lignes -->
+    <!-- Staff: five lines -->
     <path
         android:strokeColor="#23395B"
         android:strokeWidth="0.9"
         android:pathData="M39,50 H69 M39,54 H69 M39,58 H69 M39,62 H69 M39,66 H69" />
-    <!-- Croche cuivre : tête, hampe, crochet -->
+    <!-- Copper eighth note: head, stem, flag -->
     <path
         android:fillColor="#C8783E"
         android:pathData="M46.6,64 a4.4,3.2 0 1,0 8.8,0 a4.4,3.2 0 1,0 -8.8,0 Z" />

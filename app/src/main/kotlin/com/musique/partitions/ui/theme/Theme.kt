@@ -13,7 +13,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import com.musique.partitions.data.ThemeMode
 
-// Palette « papier et encre »
+// « papier et encre » palette (paper and ink)
 private val LightColors = lightColorScheme(
     primary = Color(0xFF23395B),
     onPrimary = Color.White,

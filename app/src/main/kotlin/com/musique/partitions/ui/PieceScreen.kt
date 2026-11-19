@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -35,10 +36,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.musique.partitions.R
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ScoreFormat
 
@@ -62,7 +65,7 @@ fun PieceScreen(vm: MainViewModel, id: String) {
                     IconButton(onClick = { vm.toggleFavourite(id) }) {
                         Icon(
                             if (favourite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                            contentDescription = if (favourite) "Retirer des favoris" else "Ajouter aux favoris",
+                            contentDescription = if (favourite) stringResource(R.string.piece_remove_favorite) else stringResource(R.string.piece_add_favorite),
                             tint = if (favourite) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
@@ -82,7 +85,7 @@ fun PieceScreen(vm: MainViewModel, id: String) {
                     onDelete = { vm.delete(piece) },
                 )
                 catalog is CatalogState.Loading -> CenteredLoading()
-                else -> CenteredMessage("Partition introuvable.")
+                else -> CenteredMessage(stringResource(R.string.common_piece_not_found))
             }
         }
     }
@@ -93,7 +96,7 @@ private fun PieceContent(
     piece: Piece,
     isSaved: Boolean,
     progress: Float?,
-    error: String?,
+    @StringRes error: Int?,
     onRead: () -> Unit,
     onSave: () -> Unit,
     onDelete: () -> Unit,
@@ -131,7 +134,7 @@ private fun PieceContent(
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             if (piece.instruments.isNotEmpty()) InfoChip(piece.pictogram(), piece.instruments)
-            InfoChip(if (piece.format == ScoreFormat.MUSICXML) "📱" else "📄", piece.formatLine())
+            InfoChip(if (piece.format == ScoreFormat.MUSICXML) "📱" else "📄", stringResource(piece.formatLineRes()))
             if (piece.year.isNotEmpty()) InfoChip("📅", piece.year)
             if (piece.lyricist.isNotEmpty()) InfoChip("✍️", piece.lyricist)
         }
@@ -143,7 +146,7 @@ private fun PieceContent(
         ) {
             Icon(Icons.Default.PlayArrow, contentDescription = null)
             Spacer(Modifier.width(8.dp))
-            Text("Lire", style = MaterialTheme.typography.titleMedium)
+            Text(stringResource(R.string.common_read), style = MaterialTheme.typography.titleMedium)
         }
         when {
             isSaved -> OutlinedButton(
@@ -153,14 +156,14 @@ private fun PieceContent(
             ) {
                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.tertiary)
                 Spacer(Modifier.width(8.dp))
-                Text("Hors ligne", Modifier.weight(1f))
-                Icon(Icons.Default.Delete, contentDescription = "Supprimer du téléphone")
+                Text(stringResource(R.string.common_offline), Modifier.weight(1f))
+                Icon(Icons.Default.Delete, contentDescription = stringResource(R.string.piece_delete_offline))
             }
             progress != null -> Column(Modifier.fillMaxWidth().padding(top = 16.dp)) {
                 if (progress >= 0f) LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth())
                 else LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 if (progress >= 0f) {
-                    Text("${(progress * 100).toInt()} %", Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall)
+                    Text(stringResource(R.string.piece_download_percent, (progress * 100).toInt()), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall)
                 }
             }
             else -> OutlinedButton(
@@ -170,11 +173,11 @@ private fun PieceContent(
             ) {
                 Text("⬇", fontSize = 18.sp)
                 Spacer(Modifier.width(8.dp))
-                Text("Garder hors ligne")
+                Text(stringResource(R.string.piece_keep_offline))
             }
         }
         if (error != null) {
-            Text(error, modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+            Text(stringResource(error), modifier = Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
 
         AttributionCard(piece, Modifier.padding(top = 24.dp, bottom = 24.dp))
@@ -203,23 +206,23 @@ fun AttributionCard(piece: Piece, modifier: Modifier = Modifier) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("🆓", fontSize = 18.sp)
             Text(
-                " Gratuite et libre",
+                " ${stringResource(R.string.piece_free_title)}",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
         LinkText(piece.licenceLabel, piece.licenceUrl, Modifier.padding(top = 8.dp))
-        Text("Gravure : ${piece.engraver}", Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium)
+        Text(stringResource(R.string.piece_engraver, piece.engraver), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium)
         Column(Modifier.padding(top = 6.dp)) {
-            Text("Source :", style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.piece_source_label), style = MaterialTheme.typography.bodyMedium)
             LinkText(piece.source, piece.sourceUrl)
         }
         if (piece.edition.isNotEmpty()) {
-            Text("Édition d'origine : ${piece.edition}", Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium)
+            Text(stringResource(R.string.piece_original_edition, piece.edition), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium)
         }
         if (piece.isShareAlike) {
             Text(
-                "Fichier diffusé tel quel, sans modification.",
+                stringResource(R.string.piece_sharealike_note),
                 Modifier.padding(top = 6.dp),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

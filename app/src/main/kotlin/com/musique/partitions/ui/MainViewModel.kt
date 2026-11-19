@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.musique.partitions.PartitionsApp
+import com.musique.partitions.R
 import com.musique.partitions.catalog.InstrumentFamily
 import com.musique.partitions.catalog.NaturalOrder
 import com.musique.partitions.catalog.Piece
@@ -41,7 +42,7 @@ sealed interface Screen {
 sealed interface CatalogState {
     data object Loading : CatalogState
     data class Ready(val data: LoadedCatalog) : CatalogState
-    data class Failed(val message: String) : CatalogState
+    data class Failed(val message: String?) : CatalogState
 }
 
 @OptIn(FlowPreview::class, ExperimentalCoroutinesApi::class)
@@ -55,21 +56,21 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val library = MutableStateFlow(Library())
     val family = MutableStateFlow<InstrumentFamily?>(null)
 
-    /** Chargés de façon synchrone : le thème doit être connu avant la première image. */
+    /** Loaded synchronously: the theme must be known before the first frame. */
     val settings = MutableStateFlow(app.settingsStore.load())
 
-    /** Progression des téléchargements en cours (0..1, négatif si taille inconnue). */
+    /** Progress of ongoing downloads (0..1, negative if size unknown). */
     val downloads = MutableStateFlow<Map<String, Float>>(emptyMap())
-    val downloadError = MutableStateFlow<String?>(null)
+    val downloadError = MutableStateFlow<Int?>(null)
 
-    /** Tourne-page demandé par une touche (pédale) : +1 avance, -1 recule. */
+    /** Page turn requested by a key (pedal): +1 forward, -1 back. */
     val pageTurns = kotlinx.coroutines.flow.MutableSharedFlow<Int>(extraBufferCapacity = 4)
 
     val update = MutableStateFlow<ReleaseInfo?>(null)
     val installing = MutableStateFlow(false)
-    val updateMessage = MutableStateFlow<String?>(null)
+    val updateMessage = MutableStateFlow<Int?>(null)
 
-    /** Sans texte ni famille : rien. Famille seule : toutes les pièces de la famille. */
+    /** No text and no family: nothing. Family only: all pieces of the family. */
     val results: StateFlow<List<Piece>> = combine(query.debounce(150), family, catalog) { q, f, c -> Triple(q, f, c) }
         .mapLatest { (q, f, c) ->
             when {
@@ -77,7 +78,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 q.isBlank() && f == null -> emptyList()
                 q.isBlank() && f != null -> c.data.catalog.pieces
                     .filter { f in c.data.families.getValue(it.id) }
-                    // Parcours d'une famille : tout afficher (1 700 pièces au plus), la liste est paresseuse.
+                    // Browsing a family: show everything (1,700 pieces at most), the list is lazy.
                     .sortedWith(compareBy<Piece> { it.composerSort }.thenComparator { a, b -> NaturalOrder.compare(a.title, b.title) })
                 else -> c.data.search.search(q, limit = Int.MAX_VALUE)
                     .filter { f == null || f in c.data.families.getValue(it.id) }
@@ -94,7 +95,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                CatalogState.Failed(e.message ?: "erreur inconnue")
+                CatalogState.Failed(e.message)
             }
         }
         viewModelScope.launch { library.value = withContext(Dispatchers.IO) { app.libraryStore.load() } }
@@ -105,7 +106,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun markOpened(id: String) = updateLibrary { it.markOpened(id) }
 
-    /** Disque plein ou autre erreur d'écriture : on garde l'état courant plutôt que de planter. */
+    /** Disk full or other write error: keep the current state rather than crash. */
     private fun updateLibrary(change: (com.musique.partitions.data.LibraryStore) -> com.musique.partitions.data.Library) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { change(app.libraryStore) } }.onSuccess { library.value = it }
@@ -164,7 +165,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                downloadError.value = "Téléchargement impossible. Vérifiez la connexion."
+                downloadError.value = R.string.piece_download_failed
             } finally {
                 downloads.update { it - piece.id }
                 refreshSaved()
@@ -188,14 +189,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 val result = app.updateInstaller.install(info)
                 updateMessage.value = when (result) {
                     UpdateInstaller.Result.STARTED -> null
-                    UpdateInstaller.Result.NEED_PERMISSION -> "Autorisez l'installation pour cette appli, puis touchez à nouveau Installer."
-                    UpdateInstaller.Result.DOWNLOAD_FAILED -> "Téléchargement impossible. Réessayez plus tard."
-                    UpdateInstaller.Result.BAD_URL, UpdateInstaller.Result.BAD_APK -> "Fichier de mise à jour refusé."
+                    UpdateInstaller.Result.NEED_PERMISSION -> R.string.update_need_permission
+                    UpdateInstaller.Result.DOWNLOAD_FAILED -> R.string.update_download_failed
+                    UpdateInstaller.Result.BAD_URL, UpdateInstaller.Result.BAD_APK -> R.string.update_refused
                 }
             } catch (e: CancellationException) {
                 throw e
             } catch (e: Exception) {
-                updateMessage.value = "Téléchargement impossible. Réessayez plus tard."
+                updateMessage.value = R.string.update_download_failed
             } finally {
                 installing.value = false
             }

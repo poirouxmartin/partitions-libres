@@ -13,9 +13,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 
 /**
- * Télécharge l'APK d'une release et le confie à l'installateur Android.
- * Garde-fous : l'URL doit venir des releases du dépôt, l'APK doit porter le même identifiant
- * et un versionCode supérieur ; Android refuse de lui-même un APK signé avec une autre clé.
+ * Downloads a release's APK and hands it to the Android installer.
+ * Guard rails: the URL must come from the repository's releases, the APK must carry the same package id
+ * and a higher versionCode; Android itself refuses an APK signed with another key.
  */
 class UpdateInstaller(
     private val context: Context,
@@ -29,7 +29,7 @@ class UpdateInstaller(
         if (!info.apkUrl.startsWith(apkUrlPrefix) || ".." in info.apkUrl) return Result.BAD_URL
         val pm = context.packageManager
         if (!pm.canRequestPackageInstalls()) {
-            // Réglage « Installer des applis inconnues » ; l'utilisateur retouche « Installer » ensuite.
+            // « Installer des applis inconnues » setting (unknown apps); the user then taps « Installer » again.
             context.startActivity(
                 Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES, Uri.parse("package:${context.packageName}"))
                     .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),

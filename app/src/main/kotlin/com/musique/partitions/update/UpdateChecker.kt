@@ -16,10 +16,10 @@ interface UpdatePrefs {
 }
 
 /**
- * Interroge les releases GitHub de [repo] (dépôt public : l'appli n'a pas de jeton).
- * Appelé au démarrage et à chaque retour au premier plan ; le réseau n'est sollicité
- * qu'une fois toutes les [INTERVAL_MS] quand tout va bien, [RETRY_MS] après un échec.
- * Hors ligne, une mise à jour déjà connue reste proposée.
+ * Queries the GitHub releases of [repo] (public repository: the app has no token).
+ * Called at startup and on each return to the foreground; the network is only hit
+ * once every [INTERVAL_MS] when all is well, and [RETRY_MS] after a failure.
+ * Offline, an update already known stays offered.
  */
 class UpdateChecker(
     private val fetcher: Fetcher,
@@ -30,10 +30,10 @@ class UpdateChecker(
 ) {
     private val url = "https://api.github.com/repos/$repo/releases?per_page=5"
 
-    /** Seuls les APK publiés dans les releases de ce dépôt sont acceptés. */
+    /** Only APKs published in this repository's releases are accepted. */
     val apkUrlPrefix = "https://github.com/$repo/releases/download/"
 
-    /** Dernière version plus récente que la version installée, non reportée ; null sinon (jamais d'exception). */
+    /** Latest version newer than the installed one, not postponed; null otherwise (never throws). */
     suspend fun check(): ReleaseInfo? = withContext(Dispatchers.IO) {
         val now = clock()
         var response = prefs.cachedResponse
@@ -51,7 +51,7 @@ class UpdateChecker(
             ?.takeIf { isUpdateAvailable(currentVersion, it) && it.apkUrl.startsWith(apkUrlPrefix) && !isSnoozed(it, now) }
     }
 
-    /** « Plus tard » : la bannière revient après [SNOOZE_MS], ou tout de suite pour une version plus récente. */
+    /** « Plus tard » (later): the banner comes back after [SNOOZE_MS], or right away for a newer version. */
     fun dismiss(tag: String) {
         prefs.dismissedTag = tag
         prefs.dismissedAt = clock()

@@ -1,8 +1,8 @@
 package com.musique.partitions.catalog
 
 /**
- * Familles d'instruments affichées en filtre. Le champ `instruments` du catalogue est libre
- * (anglais, français, allemand, selon la source) : on le range par mots-clés.
+ * Instrument families shown as a filter. The `instruments` field of the catalogue is free text
+ * (English, French or German, depending on the source): it is sorted by keywords.
  */
 enum class InstrumentFamily(val label: String) {
     VOICE("Chant"),
@@ -13,7 +13,7 @@ enum class InstrumentFamily(val label: String) {
     WINDS("Vents");
 
     companion object {
-        // Préfixes de mots normalisés (minuscules, sans accents). « bass » est ambigu (voix ou contrebasse) : ignoré.
+        // Normalized word prefixes (lowercase, no accents). « bass » is ambiguous (voice or double bass): ignored.
         private val prefixes: List<Pair<String, InstrumentFamily>> = listOf(
             "voice" to VOICE, "voix" to VOICE, "voce" to VOICE, "singstimme" to VOICE, "gesang" to VOICE,
             "soprano" to VOICE, "mezzo" to VOICE, "alto" to VOICE, "contralto" to VOICE, "tenor" to VOICE,
@@ -42,7 +42,7 @@ enum class InstrumentFamily(val label: String) {
             val out = LinkedHashSet<InstrumentFamily>()
             for (t in tokens) {
                 for ((p, f) in prefixes) {
-                    // Mots courts ou ambigus (« cor » / « cordes », « harp » / « harpsichord ») : mot entier, pluriel admis.
+                    // Short or ambiguous words (« cor » / « cordes », « harp » / « harpsichord »): whole word only, plural allowed.
                     val hit = if (p in wholeWords) t == p || t == p + "s" || t == p + "e" else t.startsWith(p)
                     if (hit) out += f
                 }

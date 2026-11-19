@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.sp
 import com.musique.partitions.catalog.InstrumentFamily
 import com.musique.partitions.catalog.Piece
 
-/** Pictogramme couleur de chaque famille : lisible d'un coup d'oeil, sans texte. */
+/** Colour pictogram of each family: readable at a glance, no text. */
 val InstrumentFamily.emoji: String
     get() = when (this) {
         InstrumentFamily.VOICE -> "🎤"
@@ -31,7 +31,7 @@ val InstrumentFamily.emoji: String
         InstrumentFamily.WINDS -> "🎺"
     }
 
-/** Teintes accordées au thème papier et encre ; une par compositeur, stable d'un lancement à l'autre. */
+/** Tints matching the paper and ink theme; one per composer, stable from one launch to the next. */
 private val Inks = listOf(
     Color(0xFF23395B), Color(0xFFA0552A), Color(0xFF5C7A5A), Color(0xFF7A4E7E),
     Color(0xFF2F6F7A), Color(0xFF8A6A2F), Color(0xFF9B3D4A), Color(0xFF4F5D8A),
@@ -41,7 +41,7 @@ fun inkFor(key: String): Color = Inks[Math.floorMod(key.hashCode(), Inks.size)]
 
 fun Piece.pictogram(): String = InstrumentFamily.of(instruments).firstOrNull()?.emoji ?: "🎼"
 
-/** Initiale du nom de famille (le tri commence par le nom). */
+/** Initial of the family name (sorting starts with the name). */
 fun initialOf(sort: String, name: String): String =
     sort.ifBlank { name }.firstOrNull { it.isLetter() }?.uppercase() ?: "♪"
 
@@ -59,7 +59,7 @@ fun ComposerAvatar(name: String, sort: String, size: Dp = 40.dp) {
     }
 }
 
-/** Vignette d'une pièce : pictogramme de l'instrument sur la teinte du compositeur. */
+/** Thumbnail of a piece: instrument pictogram on the composer's tint. */
 @Composable
 fun PieceBadge(piece: Piece, size: Dp = 48.dp) {
     Box(

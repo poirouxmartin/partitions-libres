@@ -2,6 +2,7 @@ package com.musique.partitions.ui
 
 import android.graphics.Bitmap
 import android.graphics.Picture
+import androidx.annotation.StringRes
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -63,10 +64,12 @@ import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.musique.partitions.PartitionsApp
+import com.musique.partitions.R
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ScoreFormat
 import com.musique.render.MusicXmlArchive
@@ -80,7 +83,7 @@ private val PageMargin = 12.dp
 
 private sealed interface ViewerState {
     data object Loading : ViewerState
-    data class Error(val message: String) : ViewerState
+    data class Error(@StringRes val message: Int, val arg: String = "") : ViewerState
     data class Pictures(val pages: List<Picture>) : ViewerState
     data class Pdf(val pages: PdfPages) : ViewerState
 }
@@ -96,7 +99,7 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
 
     Scaffold(
         containerColor = if (settings.paper.isDark) Color(0xFF111317) else MaterialTheme.colorScheme.background,
-        topBar = { AppTopBar(title = piece?.title ?: "Partition", subtitle = piece?.composer, onBack = vm::pop) },
+        topBar = { AppTopBar(title = piece?.title ?: stringResource(R.string.viewer_title_fallback), subtitle = piece?.composer, onBack = vm::pop) },
         bottomBar = { if (piece != null) AttributionStrip(piece) },
     ) { pad ->
         BoxWithConstraints(Modifier.padding(pad).fillMaxSize()) {
@@ -104,7 +107,7 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
             when {
                 piece != null -> ViewerBody(piece, widthPx, vm.pageTurns, settings)
                 catalog is CatalogState.Loading -> CenteredLoading()
-                else -> CenteredMessage("Partition introuvable.")
+                else -> CenteredMessage(stringResource(R.string.common_piece_not_found))
             }
         }
     }
@@ -115,7 +118,7 @@ private fun AttributionStrip(piece: Piece) {
     Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         Text(
-            "${piece.shortLicence()} · Gravure : ${piece.engraver} · Source : ${piece.source}",
+            stringResource(R.string.viewer_attribution, piece.shortLicence(), piece.engraver, piece.source),
             modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -128,7 +131,7 @@ private fun AttributionStrip(piece: Piece) {
 @Composable
 private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>, settings: Settings) {
     val app = LocalContext.current.applicationContext as PartitionsApp
-    // Un PDF se redessine à la largeur de la colonne sans rechargement ; seule la mise en page MusicXML en dépend.
+    // A PDF is redrawn at the column width without reloading; only the MusicXML layout depends on it.
     val layoutWidth = if (piece.format == ScoreFormat.MUSICXML) widthPx else 0
     var state by remember(piece.id, layoutWidth) { mutableStateOf<ViewerState>(ViewerState.Loading) }
 
@@ -140,7 +143,7 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>, settings: S
 
     when (val s = state) {
         ViewerState.Loading -> CenteredLoading()
-        is ViewerState.Error -> CenteredMessage(s.message)
+        is ViewerState.Error -> CenteredMessage(stringResource(s.message, s.arg))
         is ViewerState.Pictures -> StageReader(s.pages.size, turns, settings) {
             itemsIndexed(s.pages) { _, picture -> PicturePage(picture, settings.paper) }
         }
@@ -151,8 +154,8 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>, settings: S
 }
 
 /**
- * Lecture « sur le pupitre » : écran toujours allumé, tap à droite pour avancer d'un écran,
- * à gauche pour revenir, pédale Bluetooth (flèches, Page suivante/précédente, espace).
+ * « sur le pupitre » reading: screen always on, tap on the right to advance one screen,
+ * on the left to go back, Bluetooth pedal (arrow keys, next/previous page, space).
  */
 @Composable
 private fun StageReader(pageCount: Int, turns: Flow<Int>, settings: Settings, content: LazyListScope.() -> Unit) {
@@ -237,9 +240,9 @@ private suspend fun loadViewer(app: PartitionsApp, piece: Piece, widthPx: Int): 
     } catch (e: CancellationException) {
         throw e
     } catch (e: IOException) {
-        return ViewerState.Error("Pas de connexion. Téléchargez la partition pour la lire hors ligne.")
+        return ViewerState.Error(R.string.viewer_error_offline)
     } catch (e: Exception) {
-        return ViewerState.Error("Impossible d'ouvrir la partition (${e.message}).")
+        return ViewerState.Error(R.string.viewer_error_open, e.message.toString())
     }
     return try {
         when (piece.format) {
@@ -255,7 +258,7 @@ private suspend fun loadViewer(app: PartitionsApp, piece: Piece, widthPx: Int): 
     } catch (e: CancellationException) {
         throw e
     } catch (e: Exception) {
-        ViewerState.Error("Impossible d'afficher cette partition (${e.message}).")
+        ViewerState.Error(R.string.viewer_error_render, e.message.toString())
     }
 }
 
