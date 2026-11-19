@@ -35,8 +35,8 @@ Working name: partitions-libres. Provisional display name « Partitions libres �
 
 ## What remains
 
-1. **Badly spaced lyrics** in the MusicXML rendering: words run together (« Lord,forto-morrow »), and two stray dots appear at the top left. Probable cause: the Verovio SVG spaces are not handled by androidsvg. To fix in `:render`.
-2. **Slow startup**: the 2.5 MB catalogue takes about 8 s to load on the emulator, in debug. Options: measure in release, precompute the index, load as a stream, or use a binary format.
+1. ~~Badly spaced lyrics~~ (fixed in 0.4.0): Verovio lays text out with Times metrics; androidsvg now draws "Times" with Liberation Serif (`render/src/main/assets/fonts`, OFL), and Verovio placeholders (the two stray dots) get `display="none"` (`SvgFixes`).
+2. **Startup** (improved in 0.4.0): search index 3.5x faster, catalogue loaded from `Application.onCreate`. Release on the emulator: about 4-6 s to the composer list, versus 37-67 s for 0.3.1 with the same uiautomator probe (the probe itself adds seconds). Next options if needed: precomputed index or binary format.
 3. **Hosting**: files are for now taken from the sources (raw.githubusercontent.com for OpenScore, at a frozen commit; mutopiaproject.org). The study recommends hosting them ourselves.
 4. **Update** (17/11): checked at startup and on each return to the app (network at most every 6 h, 30 min after a failure, known update kept offline); « Plus tard » postpones by 24 h; APK accepted only from the repository's releases, same package id and higher versionCode. Release APK signed with a stable key kept outside the repository, arm64-v8a + x86_64, 43 MB. Remaining: publish the repository (public) and a first release to try it end to end.
 5. **Study page turns**: taps, half page, Bluetooth pedal, automatic cropping. Also remaining: favourites separate from downloads, instrument filter and transposition.
