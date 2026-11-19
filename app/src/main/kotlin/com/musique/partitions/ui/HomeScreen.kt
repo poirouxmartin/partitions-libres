@@ -21,7 +21,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Search
@@ -72,7 +71,10 @@ fun HomeScreen(vm: MainViewModel) {
     val savedIds = remember(saved) { saved.map { it.id }.toSet() }
     val favIds = remember(library) { library.favourites.toSet() }
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.background) { pad ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        bottomBar = { AppNavBar(vm, Screen.Home) },
+    ) { pad ->
         Column(Modifier.padding(pad).consumeWindowInsets(pad).imePadding()) {
             Row(
                 Modifier.fillMaxWidth().padding(start = 20.dp, end = 8.dp, top = 8.dp),
@@ -84,9 +86,6 @@ fun HomeScreen(vm: MainViewModel) {
                     style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.primary,
                 )
-                IconButton(onClick = { vm.push(Screen.About) }) {
-                    Icon(Icons.Default.Info, contentDescription = "À propos et licences")
-                }
             }
             OutlinedTextField(
                 value = query,
@@ -354,7 +353,7 @@ private fun PieceTile(piece: Piece, saved: Boolean, favourite: Boolean, onClick:
 }
 
 @Composable
-private fun StatusIcons(saved: Boolean, favourite: Boolean) {
+internal fun StatusIcons(saved: Boolean, favourite: Boolean) {
     Row {
         if (favourite) {
             Icon(Icons.Default.Favorite, contentDescription = "Favori", tint = MaterialTheme.colorScheme.secondary, modifier = Modifier.size(18.dp))
@@ -396,7 +395,7 @@ private fun ResultList(vm: MainViewModel, results: List<Piece>, savedIds: Set<St
 }
 
 @Composable
-private fun PieceRow(piece: Piece, saved: Boolean, favourite: Boolean, onClick: () -> Unit) {
+internal fun PieceRow(piece: Piece, saved: Boolean, favourite: Boolean, onClick: () -> Unit) {
     Row(
         Modifier.fillMaxWidth().clickable(onClick = onClick).padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,

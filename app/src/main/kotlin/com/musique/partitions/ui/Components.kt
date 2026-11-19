@@ -16,6 +16,15 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Badge
+import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -80,6 +89,35 @@ fun AppTopBar(
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(containerColor = MaterialTheme.colorScheme.background),
     )
+}
+
+@Composable
+fun AppNavBar(vm: MainViewModel, current: Screen) {
+    val library by vm.library.collectAsStateWithLifecycle()
+    NavigationBar {
+        NavigationBarItem(
+            selected = current == Screen.Home,
+            onClick = { vm.openTab(Screen.Home) },
+            icon = { Icon(Icons.Default.Home, contentDescription = null) },
+            label = { Text("Accueil") },
+        )
+        NavigationBarItem(
+            selected = current == Screen.Favourites,
+            onClick = { vm.openTab(Screen.Favourites) },
+            icon = {
+                BadgedBox(badge = { if (library.favourites.isNotEmpty()) Badge { Text(library.favourites.size.toString()) } }) {
+                    Icon(Icons.Default.Favorite, contentDescription = null)
+                }
+            },
+            label = { Text("Favoris") },
+        )
+        NavigationBarItem(
+            selected = current == Screen.Settings,
+            onClick = { vm.openTab(Screen.Settings) },
+            icon = { Icon(Icons.Default.Settings, contentDescription = null) },
+            label = { Text("Réglages") },
+        )
+    }
 }
 
 @Composable

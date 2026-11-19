@@ -53,6 +53,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.ColorMatrix
+import com.musique.partitions.data.ScorePaper
+import com.musique.partitions.data.Settings
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -88,16 +92,17 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
     // Read both states here, in this scope: BoxWithConstraints below is its own recompose scope,
     // so a lookup that only depends on states read there would never be refreshed.
     val piece = remember(catalog, saved, id) { vm.pieceById(id) }
+    val settings by vm.settings.collectAsStateWithLifecycle()
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = if (settings.paper.isDark) Color(0xFF111317) else MaterialTheme.colorScheme.background,
         topBar = { AppTopBar(title = piece?.title ?: "Partition", subtitle = piece?.composer, onBack = vm::pop) },
         bottomBar = { if (piece != null) AttributionStrip(piece) },
     ) { pad ->
         BoxWithConstraints(Modifier.padding(pad).fillMaxSize()) {
             val widthPx = with(LocalDensity.current) { (maxWidth - PageMargin * 2).roundToPx() }
             when {
-                piece != null -> ViewerBody(piece, widthPx, vm.pageTurns)
+                piece != null -> ViewerBody(piece, widthPx, vm.pageTurns, settings)
                 catalog is CatalogState.Loading -> CenteredLoading()
                 else -> CenteredMessage("Partition introuvable.")
             }
@@ -121,7 +126,7 @@ private fun AttributionStrip(piece: Piece) {
 }
 
 @Composable
-private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
+private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>, settings: Settings) {
     val app = LocalContext.current.applicationContext as PartitionsApp
     // Un PDF se redessine à la largeur de la colonne sans rechargement ; seule la mise en page MusicXML en dépend.
     val layoutWidth = if (piece.format == ScoreFormat.MUSICXML) widthPx else 0
@@ -136,11 +141,11 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
     when (val s = state) {
         ViewerState.Loading -> CenteredLoading()
         is ViewerState.Error -> CenteredMessage(s.message)
-        is ViewerState.Pictures -> StageReader(s.pages.size, turns) {
-            itemsIndexed(s.pages) { _, picture -> PicturePage(picture) }
+        is ViewerState.Pictures -> StageReader(s.pages.size, turns, settings) {
+            itemsIndexed(s.pages) { _, picture -> PicturePage(picture, settings.paper) }
         }
-        is ViewerState.Pdf -> StageReader(s.pages.sizes.size, turns) {
-            itemsIndexed(s.pages.sizes) { i, (w, h) -> PdfPage(s.pages, i, w.toFloat() / h, widthPx) }
+        is ViewerState.Pdf -> StageReader(s.pages.sizes.size, turns, settings) {
+            itemsIndexed(s.pages.sizes) { i, (w, h) -> PdfPage(s.pages, i, w.toFloat() / h, widthPx, settings.paper) }
         }
     }
 }
@@ -150,15 +155,16 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
  * à gauche pour revenir, pédale Bluetooth (flèches, Page suivante/précédente, espace).
  */
 @Composable
-private fun StageReader(pageCount: Int, turns: Flow<Int>, content: LazyListScope.() -> Unit) {
+private fun StageReader(pageCount: Int, turns: Flow<Int>, settings: Settings, content: LazyListScope.() -> Unit) {
+    val tapToTurn = settings.tapToTurn
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
     var viewportPx by remember { mutableIntStateOf(0) }
     var hint by remember { mutableStateOf(true) }
     val view = LocalView.current
 
-    DisposableEffect(view) {
-        view.keepScreenOn = true
+    DisposableEffect(view, settings.keepScreenOn) {
+        view.keepScreenOn = settings.keepScreenOn
         onDispose { view.keepScreenOn = false }
     }
     LaunchedEffect(Unit) {
@@ -185,8 +191,8 @@ private fun StageReader(pageCount: Int, turns: Flow<Int>, content: LazyListScope
     ) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize().pointerInput(Unit) {
-                detectTapGestures { offset -> turn(if (offset.x < size.width / 3f) -1 else 1) }
+            modifier = Modifier.fillMaxSize().pointerInput(tapToTurn) {
+                if (tapToTurn) detectTapGestures { offset -> turn(if (offset.x < size.width / 3f) -1 else 1) }
             },
             contentPadding = PaddingValues(horizontal = PageMargin, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -206,7 +212,7 @@ private fun StageReader(pageCount: Int, turns: Flow<Int>, content: LazyListScope
                 )
             }
         }
-        AnimatedVisibility(visible = hint, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxSize()) {
+        AnimatedVisibility(visible = hint && tapToTurn, enter = fadeIn(), exit = fadeOut(), modifier = Modifier.fillMaxSize()) {
             Row(Modifier.fillMaxSize()) {
                 TapZone("‹", Modifier.weight(1f))
                 TapZone("›", Modifier.weight(2f))
@@ -254,21 +260,36 @@ private suspend fun loadViewer(app: PartitionsApp, piece: Piece, widthPx: Int): 
 }
 
 @Composable
-private fun PageFrame(aspect: Float, content: @Composable () -> Unit) {
-    Box(Modifier.fillMaxWidth().aspectRatio(aspect).shadow(2.dp).background(Color.White)) { content() }
+private fun PageFrame(aspect: Float, paper: ScorePaper, content: @Composable () -> Unit) {
+    Box(Modifier.fillMaxWidth().aspectRatio(aspect).shadow(2.dp).background(Color(paper.paper))) { content() }
 }
 
 @Composable
-private fun PicturePage(picture: Picture) {
+private fun PicturePage(picture: Picture, paper: ScorePaper) {
     val aspect = if (picture.width > 0 && picture.height > 0) picture.width.toFloat() / picture.height else 0.7f
-    PageFrame(aspect) {
+    val matrix = remember(paper) { paper.colorMatrix() }
+    val layerPaint = remember(paper) {
+        matrix?.let { android.graphics.Paint().apply { colorFilter = android.graphics.ColorMatrixColorFilter(it) } }
+    }
+    PageFrame(aspect, paper) {
         Canvas(Modifier.fillMaxSize()) {
             drawIntoCanvas { canvas ->
                 val native = canvas.nativeCanvas
                 native.save()
                 val s = size.width / picture.width.coerceAtLeast(1)
                 native.scale(s, s)
-                native.drawPicture(picture)
+                // Le SVG est transparent : on l'étale sur du blanc dans une couche recolorée par la matrice.
+                if (layerPaint != null) {
+                    native.saveLayer(null, layerPaint)
+                    native.drawRect(
+                        0f, 0f, picture.width.toFloat(), picture.height.toFloat(),
+                        android.graphics.Paint().apply { color = android.graphics.Color.WHITE },
+                    )
+                    native.drawPicture(picture)
+                    native.restore()
+                } else {
+                    native.drawPicture(picture)
+                }
                 native.restore()
             }
         }
@@ -276,9 +297,18 @@ private fun PicturePage(picture: Picture) {
 }
 
 @Composable
-private fun PdfPage(pdf: PdfPages, index: Int, aspect: Float, widthPx: Int) {
-    PageFrame(aspect) {
+private fun PdfPage(pdf: PdfPages, index: Int, aspect: Float, widthPx: Int, paper: ScorePaper) {
+    val matrix = remember(paper) { paper.colorMatrix() }
+    PageFrame(aspect, paper) {
         val bitmap by produceState<Bitmap?>(null, pdf, index, widthPx) { value = pdf.render(index, widthPx) }
-        bitmap?.let { Image(it.asImageBitmap(), contentDescription = null, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.FillBounds) }
+        bitmap?.let {
+            Image(
+                it.asImageBitmap(),
+                contentDescription = null,
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.FillBounds,
+                colorFilter = matrix?.let { m -> ColorFilter.colorMatrix(ColorMatrix(m)) },
+            )
+        }
     }
 }

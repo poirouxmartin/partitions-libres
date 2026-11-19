@@ -11,6 +11,7 @@ import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ReleaseInfo
 import com.musique.partitions.data.Library
 import com.musique.partitions.data.LoadedCatalog
+import com.musique.partitions.data.Settings
 import com.musique.partitions.update.UpdateInstaller
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,8 @@ sealed interface Screen {
     data class Piece(val id: String) : Screen
     data class Viewer(val id: String) : Screen
     data object About : Screen
+    data object Favourites : Screen
+    data object Settings : Screen
 }
 
 sealed interface CatalogState {
@@ -51,6 +54,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val savedPieces = MutableStateFlow<List<Piece>>(emptyList())
     val library = MutableStateFlow(Library())
     val family = MutableStateFlow<InstrumentFamily?>(null)
+
+    /** Chargés de façon synchrone : le thème doit être connu avant la première image. */
+    val settings = MutableStateFlow(app.settingsStore.load())
 
     /** Progression des téléchargements en cours (0..1, négatif si taille inconnue). */
     val downloads = MutableStateFlow<Map<String, Float>>(emptyMap())
@@ -106,6 +112,17 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    fun updateSettings(change: (Settings) -> Settings) {
+        val next = change(settings.value)
+        settings.value = next
+        viewModelScope.launch { runCatching { withContext(Dispatchers.IO) { app.settingsStore.save(next) } } }
+    }
+
+    /** Onglet de la barre du bas : l'accueil reste sous les autres pour que Retour y ramène. */
+    fun openTab(tab: Screen) {
+        stack.value = if (tab == Screen.Home) listOf(Screen.Home) else listOf(Screen.Home, tab)
+    }
+
     fun setFamily(f: InstrumentFamily?) { family.value = f }
 
     fun checkUpdate() {
@@ -123,6 +140,10 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         intent ?: return
         intent.getStringExtra("query")?.let { query.value = it }
         intent.getStringExtra("open")?.let { stack.value = listOf(Screen.Home, Screen.Piece(it)) }
+        when (intent.getStringExtra("tab")) {
+            "favoris" -> openTab(Screen.Favourites)
+            "reglages" -> openTab(Screen.Settings)
+        }
         intent.getStringExtra("view")?.let { stack.value = listOf(Screen.Home, Screen.Viewer(it)); markOpened(it) }
     }
 

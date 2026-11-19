@@ -20,7 +20,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) vm.handleIntent(intent)
-        setContent { AppTheme { AppRoot(vm) } }
+        setContent {
+            val settings by vm.settings.collectAsStateWithLifecycle()
+            AppTheme(settings.theme) { AppRoot(vm) }
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -60,5 +63,7 @@ private fun AppRoot(vm: MainViewModel) {
         is Screen.Piece -> PieceScreen(vm, screen.id)
         is Screen.Viewer -> ViewerScreen(vm, screen.id)
         Screen.About -> AboutScreen(vm)
+        Screen.Favourites -> FavouritesScreen(vm)
+        Screen.Settings -> SettingsScreen(vm)
     }
 }
