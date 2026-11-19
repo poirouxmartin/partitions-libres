@@ -94,7 +94,8 @@ fun AppTopBar(
 @Composable
 fun AppNavBar(vm: MainViewModel, current: Screen) {
     val library by vm.library.collectAsStateWithLifecycle()
-    NavigationBar {
+    // Couleurs de la palette « papier et encre » plutôt que le mauve par défaut de Material.
+    NavigationBar(containerColor = MaterialTheme.colorScheme.surfaceVariant) {
         NavigationBarItem(
             selected = current == Screen.Home,
             onClick = { vm.openTab(Screen.Home) },
@@ -105,7 +106,7 @@ fun AppNavBar(vm: MainViewModel, current: Screen) {
             selected = current == Screen.Favourites,
             onClick = { vm.openTab(Screen.Favourites) },
             icon = {
-                BadgedBox(badge = { if (library.favourites.isNotEmpty()) Badge { Text(library.favourites.size.toString()) } }) {
+                BadgedBox(badge = { if (library.favourites.isNotEmpty()) Badge(containerColor = MaterialTheme.colorScheme.secondary) { Text(library.favourites.size.toString()) } }) {
                     Icon(Icons.Default.Favorite, contentDescription = null)
                 }
             },

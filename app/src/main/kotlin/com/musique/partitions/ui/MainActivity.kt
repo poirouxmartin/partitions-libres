@@ -1,6 +1,11 @@
 package com.musique.partitions.ui
 
 import android.content.Intent
+import android.graphics.Color
+import androidx.activity.SystemBarStyle
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
+import com.musique.partitions.data.ThemeMode
 import android.os.Bundle
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
@@ -22,6 +27,18 @@ class MainActivity : ComponentActivity() {
         if (savedInstanceState == null) vm.handleIntent(intent)
         setContent {
             val settings by vm.settings.collectAsStateWithLifecycle()
+            val systemDark = isSystemInDarkTheme()
+            val dark = when (settings.theme) {
+                ThemeMode.SYSTEM -> systemDark
+                ThemeMode.LIGHT -> false
+                ThemeMode.DARK -> true
+            }
+            // Icônes de la barre d'état lisibles même quand le thème choisi diffère de celui du système.
+            LaunchedEffect(dark) {
+                val style = if (dark) SystemBarStyle.dark(Color.TRANSPARENT)
+                else SystemBarStyle.light(Color.TRANSPARENT, Color.TRANSPARENT)
+                enableEdgeToEdge(statusBarStyle = style, navigationBarStyle = style)
+            }
             AppTheme(settings.theme) { AppRoot(vm) }
         }
     }
