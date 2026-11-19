@@ -82,7 +82,7 @@ class ScoreStoreTest {
         assertEquals(cache, cached.parentFile)
         assertEquals(1, fetches)
         store.fileForViewing(p)
-        assertEquals(1, fetches) // réutilise le cache
+        assertEquals(1, fetches) // reuses the cache
         store.save(p) {}
         assertEquals(2, fetches)
         val viewed = store.fileForViewing(p)

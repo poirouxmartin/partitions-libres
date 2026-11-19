@@ -5,13 +5,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.File
 
-/** Favoris et partitions récemment ouvertes, par identifiant de pièce (le plus récent en tête). */
+/** Favourites and recently opened scores, by piece id (most recent first). */
 @Serializable
 data class Library(val favourites: List<String> = emptyList(), val recents: List<String> = emptyList())
 
 /**
- * Persiste [Library] dans [file]. Fichier absent ou illisible : bibliothèque vide.
- * Toutes les opérations sont synchronisées : la lecture et l'écriture ne se croisent pas.
+ * Persists [Library] in [file]. Missing or unreadable file: empty library.
+ * All operations are synchronized: reads and writes never overlap.
  */
 class LibraryStore(private val file: File, private val maxRecents: Int = 20) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -22,7 +22,7 @@ class LibraryStore(private val file: File, private val maxRecents: Int = 20) {
     @Synchronized
     fun load(): Library = cached ?: readFile().also { cached = it }
 
-    /** Ajoute [id] en tête des favoris, ou le retire s'il y est déjà. */
+    /** Adds [id] to the top of the favourites, or removes it if already there. */
     @Synchronized
     fun toggleFavourite(id: String): Library {
         val lib = load()
@@ -30,7 +30,7 @@ class LibraryStore(private val file: File, private val maxRecents: Int = 20) {
         return save(lib.copy(favourites = favourites))
     }
 
-    /** Place [id] en tête des récents, sans doublon, en gardant au plus [maxRecents] entrées. */
+    /** Moves [id] to the top of the recents, without duplicates, keeping at most [maxRecents] entries. */
     @Synchronized
     fun markOpened(id: String): Library {
         val lib = load()

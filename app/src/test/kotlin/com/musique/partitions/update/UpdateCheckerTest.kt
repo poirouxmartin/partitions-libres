@@ -58,7 +58,7 @@ class UpdateCheckerTest {
         val c = checker()
         assertNotNull(c.check())
         now += 60 * 60 * 1000
-        assertNotNull(c.check()) // résultat servi depuis le cache
+        assertNotNull(c.check()) // result served from the cache
         assertEquals(1, fetches)
         now += UpdateChecker.INTERVAL_MS
         c.check()

@@ -28,7 +28,7 @@ class MainActivity : ComponentActivity() {
         vm.handleIntent(intent)
     }
 
-    /** Pédale Bluetooth ou clavier : traité ici pour ne pas dépendre du focus Compose. */
+    /** Bluetooth pedal or keyboard: handled here so it does not depend on Compose focus. */
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         if (vm.stack.value.lastOrNull() is Screen.Viewer) {
             val direction = when (keyCode) {
@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
 
     override fun onResume() {
         super.onResume()
-        // Vérifie les mises à jour au démarrage et à chaque retour dans l'appli (limité par UpdateChecker).
+        // Checks for updates at startup and on each return to the app (rate-limited by UpdateChecker).
         vm.checkUpdate()
     }
 }

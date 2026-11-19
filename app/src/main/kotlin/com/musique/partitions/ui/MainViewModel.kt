@@ -52,18 +52,18 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     val library = MutableStateFlow(Library())
     val family = MutableStateFlow<InstrumentFamily?>(null)
 
-    /** Progression des téléchargements en cours (0..1, négatif si taille inconnue). */
+    /** Progress of ongoing downloads (0..1, negative if size unknown). */
     val downloads = MutableStateFlow<Map<String, Float>>(emptyMap())
     val downloadError = MutableStateFlow<String?>(null)
 
-    /** Tourne-page demandé par une touche (pédale) : +1 avance, -1 recule. */
+    /** Page turn requested by a key (pedal): +1 forward, -1 back. */
     val pageTurns = kotlinx.coroutines.flow.MutableSharedFlow<Int>(extraBufferCapacity = 4)
 
     val update = MutableStateFlow<ReleaseInfo?>(null)
     val installing = MutableStateFlow(false)
     val updateMessage = MutableStateFlow<String?>(null)
 
-    /** Sans texte ni famille : rien. Famille seule : toutes les pièces de la famille. */
+    /** No text and no family: nothing. Family only: all pieces of the family. */
     val results: StateFlow<List<Piece>> = combine(query.debounce(150), family, catalog) { q, f, c -> Triple(q, f, c) }
         .mapLatest { (q, f, c) ->
             when {
@@ -71,7 +71,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 q.isBlank() && f == null -> emptyList()
                 q.isBlank() && f != null -> c.data.catalog.pieces
                     .filter { f in c.data.families.getValue(it.id) }
-                    // Parcours d'une famille : tout afficher (1 700 pièces au plus), la liste est paresseuse.
+                    // Browsing a family: show everything (1,700 pieces at most), the list is lazy.
                     .sortedWith(compareBy<Piece> { it.composerSort }.thenComparator { a, b -> NaturalOrder.compare(a.title, b.title) })
                 else -> c.data.search.search(q, limit = Int.MAX_VALUE)
                     .filter { f == null || f in c.data.families.getValue(it.id) }
@@ -99,7 +99,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
 
     fun markOpened(id: String) = updateLibrary { it.markOpened(id) }
 
-    /** Disque plein ou autre erreur d'écriture : on garde l'état courant plutôt que de planter. */
+    /** Disk full or other write error: keep the current state rather than crash. */
     private fun updateLibrary(change: (com.musique.partitions.data.LibraryStore) -> com.musique.partitions.data.Library) {
         viewModelScope.launch {
             runCatching { withContext(Dispatchers.IO) { change(app.libraryStore) } }.onSuccess { library.value = it }

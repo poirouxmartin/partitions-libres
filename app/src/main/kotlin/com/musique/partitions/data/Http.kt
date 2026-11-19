@@ -10,7 +10,7 @@ fun interface Fetcher {
     fun open(url: String): InputStream
 }
 
-/** Flux dont la taille totale est connue (pour la progression) ; [length] vaut -1 sinon. */
+/** Stream whose total size is known (for progress); [length] is -1 otherwise. */
 class SizedInputStream(
     input: InputStream,
     val length: Long,
@@ -41,7 +41,7 @@ class HttpFetcher(private val userAgent: String) : Fetcher {
                 val location = c.getHeaderField("Location")
                 c.disconnect()
                 if (location == null) throw IOException("Redirection sans destination")
-                // URL(base, loc) gère aussi http -> https et les chemins relatifs.
+                // URL(base, loc) also handles http -> https and relative paths.
                 current = URL(current, location)
                 return@repeat
             }

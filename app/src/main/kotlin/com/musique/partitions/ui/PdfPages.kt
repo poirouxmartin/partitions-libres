@@ -14,7 +14,7 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import java.io.File
 
-/** Pages d'un PDF rendues à la demande ; PdfRenderer n'accepte qu'une page ouverte à la fois, d'où le Mutex. */
+/** PDF pages rendered on demand; PdfRenderer only accepts one open page at a time, hence the Mutex. */
 class PdfPages private constructor(
     private val pfd: ParcelFileDescriptor,
     private val renderer: PdfRenderer,

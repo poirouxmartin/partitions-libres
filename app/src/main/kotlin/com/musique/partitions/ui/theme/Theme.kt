@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 
-// Palette « papier et encre »
+// « papier et encre » palette (paper and ink)
 private val LightColors = lightColorScheme(
     primary = Color(0xFF23395B),
     onPrimary = Color.White,

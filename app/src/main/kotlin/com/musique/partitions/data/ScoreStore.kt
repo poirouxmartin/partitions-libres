@@ -8,9 +8,9 @@ import kotlinx.serialization.json.Json
 import java.io.File
 
 /**
- * Partitions enregistrées dans [savedDir] (`<id>.<ext>` + fiche `<id>.json` pour l'attribution hors ligne)
- * et copies temporaires de lecture dans [cacheDir]. Les fichiers sont conservés tels que téléchargés
- * (CC BY-SA : aucune modification).
+ * Scores saved in [savedDir] (`<id>.<ext>` + sidecar `<id>.json` for offline attribution)
+ * and temporary reading copies in [cacheDir]. Files are kept as downloaded
+ * (CC BY-SA: no modification).
  */
 class ScoreStore(
     private val savedDir: File,
@@ -23,7 +23,7 @@ class ScoreStore(
     private fun cachedFile(piece: Piece) = File(cacheDir, "${piece.id}.${piece.fileExtension}")
     private fun sidecar(id: String) = File(savedDir, "$id.json")
 
-    /** La fiche est écrite en dernier : sa présence implique que le fichier est complet. */
+    /** The sidecar is written last: its presence implies the file is complete. */
     fun isSaved(id: String): Boolean = sidecar(id).exists()
 
     fun savedPieces(): List<Piece> =

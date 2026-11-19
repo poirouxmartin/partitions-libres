@@ -123,7 +123,7 @@ private fun AttributionStrip(piece: Piece) {
 @Composable
 private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
     val app = LocalContext.current.applicationContext as PartitionsApp
-    // Un PDF se redessine à la largeur de la colonne sans rechargement ; seule la mise en page MusicXML en dépend.
+    // A PDF is redrawn at the column width without reloading; only the MusicXML layout depends on it.
     val layoutWidth = if (piece.format == ScoreFormat.MUSICXML) widthPx else 0
     var state by remember(piece.id, layoutWidth) { mutableStateOf<ViewerState>(ViewerState.Loading) }
 
@@ -146,8 +146,8 @@ private fun ViewerBody(piece: Piece, widthPx: Int, turns: Flow<Int>) {
 }
 
 /**
- * Lecture « sur le pupitre » : écran toujours allumé, tap à droite pour avancer d'un écran,
- * à gauche pour revenir, pédale Bluetooth (flèches, Page suivante/précédente, espace).
+ * « sur le pupitre » reading: screen always on, tap on the right to advance one screen,
+ * on the left to go back, Bluetooth pedal (arrow keys, next/previous page, space).
  */
 @Composable
 private fun StageReader(pageCount: Int, turns: Flow<Int>, content: LazyListScope.() -> Unit) {

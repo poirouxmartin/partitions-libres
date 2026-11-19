@@ -173,7 +173,7 @@ private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, message: String
     }
 }
 
-/** Pièce du jour : la même pour tout le monde un jour donné, pour avoir toujours quelque chose à ouvrir. */
+/** Piece of the day: the same for everyone on a given day, so there is always something to open. */
 private fun pieceOfTheDay(c: CatalogState.Ready): Piece? {
     val pieces = c.data.catalog.pieces
     if (pieces.isEmpty()) return null
@@ -368,7 +368,7 @@ private fun StatusIcons(saved: Boolean, favourite: Boolean) {
 @Composable
 private fun ResultList(vm: MainViewModel, results: List<Piece>, savedIds: Set<String>, favIds: Set<String>, onReset: () -> Unit) {
     if (results.isEmpty()) {
-        // Pas d'impasse : une action pour repartir.
+        // No dead end: one action to get going again.
         Column(Modifier.fillMaxWidth().padding(32.dp), horizontalAlignment = Alignment.CenterHorizontally) {
             Text("🎼", fontSize = 48.sp)
             Text("Aucun résultat", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.titleMedium)

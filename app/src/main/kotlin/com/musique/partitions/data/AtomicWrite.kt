@@ -6,7 +6,7 @@ import java.io.OutputStream
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption
 
-/** Écrit dans un fichier temporaire voisin puis renomme : [target] n'existe jamais à moitié écrit. */
+/** Writes to a temporary sibling file, then renames it: [target] is never half-written. */
 fun writeAtomically(target: File, write: (OutputStream) -> Unit) {
     target.absoluteFile.parentFile?.mkdirs()
     val tmp = File(target.absoluteFile.parentFile, target.name + ".tmp")
@@ -19,8 +19,8 @@ fun writeAtomically(target: File, write: (OutputStream) -> Unit) {
 }
 
 /**
- * Télécharge [url] octet pour octet dans [target] (atomique).
- * [onProgress] reçoit 0..1, ou -1 quand la taille totale est inconnue.
+ * Downloads [url] byte for byte into [target] (atomically).
+ * [onProgress] receives 0..1, or -1 when the total size is unknown.
  */
 fun download(fetcher: Fetcher, url: String, target: File, onProgress: (Float) -> Unit = {}) {
     fetcher.open(url).use { input ->

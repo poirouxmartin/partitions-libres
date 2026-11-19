@@ -48,7 +48,7 @@ fun openUrl(context: Context, url: String) {
     try {
         context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
     } catch (e: ActivityNotFoundException) {
-        // Pas de navigateur : rien à faire.
+        // No browser: nothing to do.
     }
 }
 
