@@ -31,7 +31,6 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         if (savedInstanceState == null) vm.handleIntent(intent)
-        if (savedInstanceState == null) askNotificationsOnce()
         setContent {
             val settings by vm.settings.collectAsStateWithLifecycle()
             val systemDark = isSystemInDarkTheme()

@@ -54,3 +54,13 @@ handles reboot and constraints without extra receivers.
 - Not run on an emulator or phone in this session.
 - `values-fr` only translates the new strings; the rest of the UI is still
   hard-coded French in Kotlin (unchanged).
+
+## Disabled in 0.3.1
+
+Play Protect blocked Certo for the same pattern (periodic background job that
+queries GitHub and prompts to install an APK); the same build without it got a
+clean verdict. 0.3.1 no longer schedules `UpdateCheckWorker`, cancels the job
+0.3.0 persisted (`UpdateCheckWorker.cancel` at app start), no-ops a run that
+fires before that (`ENABLED = false`), drops `POST_NOTIFICATIONS` and the
+permission prompt. The in-app check (start and return to foreground) is unchanged.
+Code kept for a rework.

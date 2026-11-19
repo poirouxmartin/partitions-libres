@@ -37,7 +37,7 @@ class PartitionsApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        UpdateCheckWorker.schedule(this)
+        UpdateCheckWorker.cancel(this) // background check disabled, see UpdateCheckWorker
         UpdateNotifier(this).clearIfInstalled()
     }
 }
