@@ -8,6 +8,8 @@ import com.musique.partitions.catalog.ComposerEntry
 import com.musique.partitions.catalog.InstrumentFamily
 import com.musique.partitions.catalog.Piece
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 class LoadedCatalog(val catalog: Catalog) {
@@ -21,9 +23,12 @@ class LoadedCatalog(val catalog: Catalog) {
 class CatalogRepository(private val context: Context) {
     @Volatile
     private var loaded: LoadedCatalog? = null
+    private val lock = Mutex()
 
-    suspend fun get(): LoadedCatalog = loaded ?: withContext(Dispatchers.IO) {
-        val text = context.assets.open("catalog.json").use { it.readBytes().decodeToString() }
-        LoadedCatalog(CatalogParser.parse(text))
-    }.also { loaded = it }
+    suspend fun get(): LoadedCatalog = loaded ?: lock.withLock {
+        loaded ?: withContext(Dispatchers.IO) {
+            val text = context.assets.open("catalog.json").use { it.readBytes().decodeToString() }
+            LoadedCatalog(CatalogParser.parse(text))
+        }.also { loaded = it }
+    }
 }

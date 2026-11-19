@@ -6,9 +6,15 @@ class CatalogSearch(private val pieces: List<Piece>) {
 
     private class Keys(val piece: Piece, val composer: List<String>, val title: List<String>, val instruments: List<String>)
 
-    private val index: List<Keys> = pieces.map { p ->
-        fun keys(s: String) = TextNormalizer.tokens(s).map(TextNormalizer::phoneticKey).distinct()
-        Keys(p, keys(p.composer + " " + p.composerSort), keys(p.title + " " + p.work), keys(p.instruments))
+    private val index: List<Keys> = run {
+        val phonetic = HashMap<String, String>()
+        val keyLists = HashMap<String, List<String>>()
+        fun keys(s: String) = keyLists.getOrPut(s) {
+            TextNormalizer.tokens(s).map { phonetic.getOrPut(it) { TextNormalizer.phoneticKey(it) } }.distinct()
+        }
+        pieces.map { p ->
+            Keys(p, keys(p.composer + " " + p.composerSort), keys(p.title + " " + p.work), keys(p.instruments))
+        }
     }
 
     fun search(query: String, limit: Int = 300): List<Piece> {
