@@ -115,10 +115,11 @@ fun ViewerScreen(vm: MainViewModel, id: String) {
 
 @Composable
 private fun AttributionStrip(piece: Piece) {
+    val licence = piece.shortLicence()
     Column(Modifier.background(MaterialTheme.colorScheme.surface)) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outline)
         Text(
-            stringResource(R.string.viewer_attribution, piece.shortLicence(), piece.engraver, piece.source),
+            stringResource(R.string.viewer_attribution, licence, piece.engraver, piece.source),
             modifier = Modifier.navigationBarsPadding().padding(horizontal = 16.dp, vertical = 6.dp),
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant,

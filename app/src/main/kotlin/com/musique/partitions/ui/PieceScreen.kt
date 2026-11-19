@@ -211,7 +211,7 @@ fun AttributionCard(piece: Piece, modifier: Modifier = Modifier) {
                 color = MaterialTheme.colorScheme.secondary,
             )
         }
-        LinkText(piece.licenceLabel, piece.licenceUrl, Modifier.padding(top = 8.dp))
+        LinkText(piece.licenceText(), piece.licenceUrl, Modifier.padding(top = 8.dp))
         Text(stringResource(R.string.piece_engraver, piece.engraver), Modifier.padding(top = 6.dp), style = MaterialTheme.typography.bodyMedium)
         Column(Modifier.padding(top = 6.dp)) {
             Text(stringResource(R.string.piece_source_label), style = MaterialTheme.typography.bodyMedium)

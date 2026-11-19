@@ -45,6 +45,10 @@
     <string name="about_section_sources">Sources</string>
     <string name="about_section_licenses">Scores by license</string>
     <string name="about_sources_notice">Files come from OpenScore (CC0) and Mutopia (license specific to each score). They are downloaded and kept as they are, without modification.</string>
+    <string name="about_policy">Public domain, CC0, CC BY and CC BY-SA only. Excluded: NC, ND and unknown licenses.</string>
+    <string name="about_licence_per_piece">%1$s (per piece)</string>
+    <string name="licence_public_domain">Public domain</string>
+    <string name="licence_cc0">CC0 1.0 (public domain)</string>
     <string name="about_section_third_party">Third-party components</string>
     <string name="about_androidx">AndroidX and Jetpack Compose</string>
     <string name="about_verovio_notice">Verovio is dynamically linked; its sources are available on the project website.</string>

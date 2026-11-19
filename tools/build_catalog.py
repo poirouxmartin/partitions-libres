@@ -38,8 +38,8 @@ CACHE = Path(__file__).resolve().parent / ".cache"
 UA = "partitions-libres-catalog-builder/0.1"
 MUTOPIA = "https://www.mutopiaproject.org"
 
-CC0 = ("CC0-1.0", "CC0 1.0 (domaine public)", "https://creativecommons.org/publicdomain/zero/1.0/")
-OPENSCORE_ENGRAVER = "Communauté OpenScore (transcription MuseScore)"
+CC0 = ("CC0-1.0", "CC0 1.0 (public domain)", "https://creativecommons.org/publicdomain/zero/1.0/")
+OPENSCORE_ENGRAVER = "OpenScore community (MuseScore transcription)"
 
 
 def http_get(url: str, retries: int = 3) -> bytes:
@@ -74,7 +74,7 @@ def map_licence(text: str):
     if not t or re.search(r"non-?commercial|no-?deriv|\bnc\b|\bnd\b", t):
         return None
     if t in ("public domain", "domaine public"):
-        return ("PD", "Domaine public", f"{MUTOPIA}/legal.html#pd")
+        return ("PD", "Public domain", f"{MUTOPIA}/legal.html#pd")
     if "cc0" in t or "publicdomain/zero" in t:
         return CC0
     m = re.fullmatch(r"creative commons attribution(-sharealike)?\s+([0-9.]+)", t)
@@ -110,7 +110,7 @@ def parse_simple_yaml(text: str) -> dict:
 
 def imslp_edition(ref: str | None) -> str:
     """OpenScore transcribes old editions scanned on IMSLP; only the reference is cited."""
-    return f"Transcription d'une édition ancienne (IMSLP {ref})" if ref and ref.startswith("#") else ""
+    return f"Transcription of an old edition (IMSLP {ref})" if ref and ref.startswith("#") else ""
 
 
 def repo_snapshot(repo: str):
@@ -143,7 +143,7 @@ def openscore_lieder() -> list[dict]:
             composer=comp.get("name") or path_name(cpath),
             composer_sort=comp.get("name_sort") or path_name(cpath),
             born=comp.get("born"), died=comp.get("died"),
-            instruments=s.get("instruments") or "Voix, piano",
+            instruments=s.get("instruments") or "Voice, piano",
             lyricist=s.get("lyricist", ""),
             licence=CC0, engraver=OPENSCORE_ENGRAVER, source="OpenScore Lieder",
             source_url=s.get("link") or f"https://musescore.com/openscore-lieder-corpus/scores/{sid}",
@@ -180,7 +180,7 @@ def openscore_quartets() -> list[dict]:
             composer=comp.get("name") or path_name(cpath),
             composer_sort=path_name(cpath),
             born=comp.get("born"), died=comp.get("died"),
-            instruments="Quatuor à cordes",
+            instruments="String quartet",
             licence=CC0, engraver=OPENSCORE_ENGRAVER, source="OpenScore String Quartets",
             source_url=s.get("link", ""),
             edition=imslp_edition(s.get("imslp")),
@@ -311,11 +311,12 @@ def main() -> int:
     catalog = {
         "schema": 1,
         "generated": date.today().isoformat(),
-        "policy": "Domaine public, CC0, CC BY, CC BY-SA. Exclus : NC, ND, licence inconnue.",
+        # Display text (policy, licence names) lives in the app string resources, translated there.
+        "policy": "Public domain, CC0, CC BY, CC BY-SA. Excluded: NC, ND, unknown licence.",
         "sources": [
             {"name": "OpenScore Lieder", "url": "https://github.com/OpenScore/Lieder", "licence": "CC0-1.0"},
             {"name": "OpenScore String Quartets", "url": "https://github.com/OpenScore/StringQuartets", "licence": "CC0-1.0"},
-            {"name": "Mutopia Project", "url": MUTOPIA, "licence": "PD / CC BY / CC BY-SA (par pièce)"},
+            {"name": "Mutopia Project", "url": MUTOPIA, "licence": "PD / CC BY / CC BY-SA"},
         ],
         "pieces": unique,
     }

@@ -42,6 +42,10 @@
     <string name="about_section_sources">Sources</string>
     <string name="about_section_licenses">Partitions par licence</string>
     <string name="about_sources_notice">Les fichiers proviennent d\'OpenScore (CC0) et de Mutopia (licence propre à chaque partition). Ils sont téléchargés et conservés tels quels, sans modification.</string>
+    <string name="about_policy">Domaine public, CC0, CC BY et CC BY-SA uniquement. Exclus : NC, ND et licences inconnues.</string>
+    <string name="about_licence_per_piece">%1$s (selon la partition)</string>
+    <string name="licence_public_domain">Domaine public</string>
+    <string name="licence_cc0">CC0 1.0 (domaine public)</string>
     <string name="about_section_third_party">Composants tiers</string>
     <string name="about_androidx">AndroidX et Jetpack Compose</string>
     <string name="about_verovio_notice">Verovio est lié dynamiquement ; ses sources sont disponibles sur le site du projet.</string>

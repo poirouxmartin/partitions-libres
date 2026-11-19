@@ -41,7 +41,7 @@ fun AboutScreen(vm: MainViewModel) {
             SectionTitle(stringResource(R.string.about_section_catalog))
             if (ready != null) {
                 val catalog = ready.data.catalog
-                Text(catalog.policy, style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(R.string.about_policy),style = MaterialTheme.typography.bodyLarge)
                 Text(
                     pluralStringResource(R.plurals.about_catalog_summary, catalog.pieces.size, catalog.pieces.size, catalog.generated.take(10)),
                     Modifier.padding(top = 8.dp),
@@ -53,17 +53,18 @@ fun AboutScreen(vm: MainViewModel) {
                     PaperCard(Modifier.fillMaxWidth().padding(bottom = 8.dp)) {
                         Text(s.name, style = MaterialTheme.typography.titleSmall)
                         LinkText(s.url, s.url)
-                        Text(s.licence, Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall)
+                        Text(sourceLicenceText(s.licence), Modifier.padding(top = 4.dp), style = MaterialTheme.typography.bodySmall)
                     }
                 }
 
                 SectionTitle(stringResource(R.string.about_section_licenses))
                 val counts = remember(catalog) {
-                    catalog.pieces.groupingBy { it.licenceLabel }.eachCount().entries.sortedByDescending { it.value }
+                    catalog.pieces.groupBy { it.licence }.map { (code, ps) -> Triple(code, ps.first().licenceLabel, ps.size) }
+                        .sortedByDescending { it.third }
                 }
-                counts.forEach { (label, n) ->
+                counts.forEach { (code, fallback, n) ->
                     Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
+                        Text(licenceLabel(code, fallback), style = MaterialTheme.typography.bodyMedium)
                         Text(n.toString(), style = MaterialTheme.typography.bodyMedium)
                     }
                 }
@@ -78,6 +79,7 @@ fun AboutScreen(vm: MainViewModel) {
             listOf(
                 Triple("Verovio", "LGPL-3.0", "https://www.verovio.org"),
                 Triple("androidsvg", "Apache-2.0", "https://github.com/BigBadaboom/androidsvg"),
+                Triple("Liberation Serif", "SIL OFL 1.1", "https://github.com/liberationfonts/liberation-fonts"),
                 Triple(stringResource(R.string.about_androidx), "Apache-2.0", "https://developer.android.com/jetpack"),
             ).forEach { (name, licence, url) ->
                 Column(Modifier.padding(bottom = 10.dp)) {

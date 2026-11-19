@@ -49,8 +49,6 @@ import com.musique.partitions.R
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ScoreFormat
 
-fun Piece.shortLicence(): String = if (licence == "CC0-1.0") "CC0" else licenceLabel
-
 @StringRes
 fun Piece.formatLineRes(): Int = when (format) {
     ScoreFormat.MUSICXML -> R.string.piece_format_adapted

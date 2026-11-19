@@ -4,13 +4,13 @@ package com.musique.partitions.catalog
  * Instrument families shown as a filter. The `instruments` field of the catalogue is free text
  * (English, French or German, depending on the source): it is sorted by keywords.
  */
-enum class InstrumentFamily(val label: String) {
-    VOICE("Chant"),
-    PIANO("Piano"),
-    ORGAN("Orgue"),
-    GUITAR("Guitare"),
-    STRINGS("Cordes"),
-    WINDS("Vents");
+enum class InstrumentFamily {
+    VOICE,
+    PIANO,
+    ORGAN,
+    GUITAR,
+    STRINGS,
+    WINDS;
 
     companion object {
         // Normalized word prefixes (lowercase, no accents). « bass » is ambiguous (voice or double bass): ignored.
