@@ -1,4 +1,4 @@
-# partitions-libres
+# partitions-libres (app: OpenClef)
 
 Free Android reader for free-licence sheet music (PD, CC0, CC BY, CC BY-SA; never NC/ND; no IMSLP content without written consent). Lot status and what remains: `docs/lot1.md`.
 

@@ -1,6 +1,6 @@
 # Batch 1: skeleton of the open scores app (15/11/2026)
 
-Working name: partitions-libres. Provisional display name « Partitions libres », defined in one place (`app/src/main/res/values/strings.xml`, `app_name`). Identifier: `com.musique.partitions`.
+Repository name: partitions-libres. Display name « OpenClef » (chosen 2026-11-20, formerly « Partitions libres »), defined in one place (`app/src/main/res/values/strings.xml`, `app_name`). Identifier: `com.musique.partitions`.
 
 ## Done
 

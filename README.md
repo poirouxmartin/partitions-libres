@@ -1,4 +1,4 @@
-# Partitions libres (Android)
+# OpenClef (Android)
 
 Open-licence score reader: search a catalogue, a page for each piece, offline reading (PDF and MusicXML rendered by Verovio), page turns by touch or pedal.
 

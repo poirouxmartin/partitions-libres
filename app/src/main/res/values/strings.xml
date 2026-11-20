@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- Provisional name: the only place it is defined (UI, manifest, User-Agent read it from here). -->
-    <string name="app_name">Partitions libres</string>
+    <string name="app_name" translatable="false">OpenClef</string>
 
     <string name="common_back">Back</string>
     <string name="common_read">Read</string>
