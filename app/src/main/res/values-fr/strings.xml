@@ -94,6 +94,9 @@
     <string name="piece_sharealike_note">Fichier diffusé tel quel, sans modification.</string>
 
     <string name="viewer_title_fallback">Partition</string>
+    <string name="viewer_full_screen">Plein écran</string>
+    <string name="viewer_exit_full_screen">Quitter le plein écran</string>
+    <string name="viewer_reset_zoom">Réinitialiser le zoom</string>
     <string name="viewer_attribution">%1$s · Gravure : %2$s · Source : %3$s</string>
     <string name="viewer_error_offline">Pas de connexion. Téléchargez la partition pour la lire hors ligne.</string>
     <string name="viewer_error_open">Impossible d\'ouvrir la partition (%1$s).</string>

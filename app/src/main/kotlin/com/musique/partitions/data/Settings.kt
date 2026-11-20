@@ -47,6 +47,8 @@ data class Settings(
     val paper: ScorePaper = ScorePaper.CREAM,
     val keepScreenOn: Boolean = true,
     val tapToTurn: Boolean = true,
+    /** Score viewer without app bars or system bars, to give the music the whole screen. */
+    val fullScreen: Boolean = false,
 )
 
 /** Minimal key-value storage (SharedPreferences in the app, a Map in tests). */
@@ -65,6 +67,7 @@ class SettingsStore(private val kv: KeyValues) {
             paper = enumOr(kv.getString("paper"), d.paper),
             keepScreenOn = kv.getBoolean("keepScreenOn", d.keepScreenOn),
             tapToTurn = kv.getBoolean("tapToTurn", d.tapToTurn),
+            fullScreen = kv.getBoolean("fullScreen", d.fullScreen),
         )
     }
 
@@ -73,6 +76,7 @@ class SettingsStore(private val kv: KeyValues) {
         kv.putString("paper", s.paper.name)
         kv.putBoolean("keepScreenOn", s.keepScreenOn)
         kv.putBoolean("tapToTurn", s.tapToTurn)
+        kv.putBoolean("fullScreen", s.fullScreen)
     }
 
     private inline fun <reified E : Enum<E>> enumOr(name: String?, default: E): E =

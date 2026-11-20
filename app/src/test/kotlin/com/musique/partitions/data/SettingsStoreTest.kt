@@ -25,7 +25,7 @@ class SettingsStoreTest {
     @Test
     fun roundTrip() {
         val kv = MapKeyValues()
-        val saved = Settings(ThemeMode.DARK, ScorePaper.NIGHT, keepScreenOn = false, tapToTurn = false)
+        val saved = Settings(ThemeMode.DARK, ScorePaper.NIGHT, keepScreenOn = false, tapToTurn = false, fullScreen = true)
         SettingsStore(kv).save(saved)
         assertEquals(saved, SettingsStore(kv).load())
     }
