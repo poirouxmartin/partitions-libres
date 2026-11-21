@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Themed (monochrome) launcher layer: book pages and note, alpha only. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.86" android:scaleY="0.86">
+        <path android:pathData="M30,54 Q42,48 54,54 V78 Q42,73 30,78z M54,54 Q66,48 78,54 V78 Q66,73 54,78z" android:fillColor="#8CFFFFFF" />
+        <path android:pathData="M41.2,50.0 a6,4.4 -20 1,0 11.28,-4.10 a6,4.4 -20 1,0 -11.28,4.10z M50.0,47 V22 h2.8 V47z M52.8,22 C58,25 63.5,29 61,37.5 C60,33.5 57,31 52.8,30z" android:fillColor="#FFFFFFFF" />
+        </group>
+</vector>

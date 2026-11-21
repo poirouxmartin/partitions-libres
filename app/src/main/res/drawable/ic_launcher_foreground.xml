@@ -1,29 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- Launcher foreground (108dp canvas, 66dp safe zone): an open score book with a copper eighth note rising from it. -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <!-- Cream sheet, top-right corner folded -->
-    <path
-        android:fillColor="#FBF7EF"
-        android:pathData="M34,27 L62,27 L74,39 L74,81 L34,81 Z" />
-    <path
-        android:fillColor="#E3D8C2"
-        android:pathData="M62,27 L62,39 L74,39 Z" />
-    <!-- Staff: five lines -->
-    <path
-        android:strokeColor="#23395B"
-        android:strokeWidth="0.9"
-        android:pathData="M39,50 H69 M39,54 H69 M39,58 H69 M39,62 H69 M39,66 H69" />
-    <!-- Copper eighth note: head, stem, flag -->
-    <path
-        android:fillColor="#C8783E"
-        android:pathData="M46.6,64 a4.4,3.2 0 1,0 8.8,0 a4.4,3.2 0 1,0 -8.8,0 Z" />
-    <path
-        android:fillColor="#C8783E"
-        android:pathData="M54.2,42 H55.6 V64 H54.2 Z" />
-    <path
-        android:fillColor="#C8783E"
-        android:pathData="M55.6,42 C60,45 63.5,48.5 61.5,56 C60.5,52 58.5,50 55.6,49 Z" />
+    <group android:pivotX="54" android:pivotY="54" android:scaleX="0.86" android:scaleY="0.86">
+        <path android:pathData="M28,57 Q41,51 54,57 Q67,51 80,57 V81 Q67,76 54,81 Q41,76 28,81z" android:fillColor="#FFCDBB98" />
+        <path android:pathData="M30,54 Q42,48 54,54 V78 Q42,73 30,78z M54,54 Q66,48 78,54 V78 Q66,73 54,78z" android:fillColor="#FFFBF7EF" />
+        <path android:pathData="M53.4,54 h1.2 v24 h-1.2z" android:fillColor="#FFE3D8C2" />
+        <path android:pathData="M33.5,60 Q42,55.5 50.5,60 M33.5,64.5 Q42,60 50.5,64.5 M33.5,69 Q42,64.5 50.5,69 M57.5,60 Q66,55.5 74.5,60 M57.5,64.5 Q66,60 74.5,64.5 M57.5,69 Q66,64.5 74.5,69" android:strokeColor="#8023395B" android:strokeWidth="1.1" />
+        <path android:pathData="M41.2,50.0 a6,4.4 -20 1,0 11.28,-4.10 a6,4.4 -20 1,0 -11.28,4.10z M50.0,47 V22 h2.8 V47z M52.8,22 C58,25 63.5,29 61,37.5 C60,33.5 57,31 52.8,30z">
+            <aapt:attr name="android:fillColor"><gradient android:type="linear" android:startX="46" android:startY="22" android:endX="60" android:endY="52"><item android:offset="0" android:color="#FFE8955A"/><item android:offset="1" android:color="#FFB9652E"/></gradient></aapt:attr>
+        </path>
+        </group>
 </vector>
