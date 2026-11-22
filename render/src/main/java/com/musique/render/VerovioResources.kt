@@ -15,7 +15,8 @@ object VerovioResources {
         val marker = File(dest, ".unpacked")
         val info = context.packageManager.getPackageInfo(context.packageName, 0)
         @Suppress("DEPRECATION")
-        val stamp = "$VEROVIO_TAG:${info.longVersionCode}"
+        val code = if (android.os.Build.VERSION.SDK_INT >= 28) info.longVersionCode else info.versionCode.toLong()
+        val stamp = "$VEROVIO_TAG:$code"
         if (marker.isFile && marker.readText() == stamp) return dest
         dest.deleteRecursively()
         copy(context.assets, DIR, dest)

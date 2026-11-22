@@ -29,10 +29,26 @@ android {
         applicationId = "com.musique.partitions"
         minSdk = 29
         targetSdk = 36
-        versionCode = 8
-        versionName = "0.7.0"
+        versionCode = 9
+        versionName = "0.8.0"
         ndk { abiFilters += vrvAbis }
         buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
+    }
+
+    // "standard" is the real app. "legacy" is the same code for old devices (Android 7+),
+    // published as a separate release asset (*-legacy.apk) that its updater follows.
+    // Build it with -PvrvAbis=armeabi-v7a,arm64-v8a: old tablets are often 32-bit.
+    flavorDimensions += "device"
+    productFlavors {
+        create("standard") {
+            dimension = "device"
+            buildConfigField("boolean", "LEGACY", "false")
+        }
+        create("legacy") {
+            dimension = "device"
+            minSdk = 24
+            buildConfigField("boolean", "LEGACY", "true")
+        }
     }
 
     signingConfigs {

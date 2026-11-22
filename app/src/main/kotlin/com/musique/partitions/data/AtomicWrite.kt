@@ -12,7 +12,9 @@ fun writeAtomically(target: File, write: (OutputStream) -> Unit) {
     val tmp = File(target.absoluteFile.parentFile, target.name + ".tmp")
     try {
         tmp.outputStream().use(write)
-        Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        // rename(2) replaces the target atomically on Android at every API level; Files.move
+        // (API 26) is only reached off-Android, e.g. JVM tests on Windows.
+        if (!tmp.renameTo(target)) @Suppress("NewApi") Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
     } finally {
         tmp.delete()
     }

@@ -27,6 +27,7 @@ class UpdateChecker(
     private val clock: () -> Long,
     private val currentVersion: String,
     repo: String,
+    private val legacyApk: Boolean = false,
 ) {
     private val url = "https://api.github.com/repos/$repo/releases?per_page=5"
 
@@ -47,7 +48,7 @@ class UpdateChecker(
             }
         }
         response
-            ?.let(ReleaseParser::latest)
+            ?.let { ReleaseParser.latest(it, legacyApk) }
             ?.takeIf { isUpdateAvailable(currentVersion, it) && it.apkUrl.startsWith(apkUrlPrefix) && !isSnoozed(it, now) }
     }
 

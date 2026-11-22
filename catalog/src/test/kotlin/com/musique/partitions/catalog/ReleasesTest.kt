@@ -50,6 +50,17 @@ class ReleasesTest {
     }
 
     @Test
+    fun legacyAndStandardApksAreKeptApart() {
+        val both = """{"tag_name":"v0.8.0","assets":[
+            {"name":"openclef-v0.8.0-legacy.apk","browser_download_url":"http://dl/legacy.apk"},
+            {"name":"openclef-v0.8.0.apk","browser_download_url":"http://dl/standard.apk"}]}"""
+        assertEquals("http://dl/standard.apk", ReleaseParser.latest(both)?.apkUrl)
+        assertEquals("http://dl/legacy.apk", ReleaseParser.latest(both, legacy = true)?.apkUrl)
+        // A release without a legacy APK is not offered to old devices.
+        assertNull(ReleaseParser.latest(rel("v0.9.0"), legacy = true))
+    }
+
+    @Test
     fun updateAvailable() {
         val r = ReleaseParser.latest(rel("v0.2.0"))
         assertTrue(isUpdateAvailable("0.1.0", r))

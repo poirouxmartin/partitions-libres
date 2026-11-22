@@ -56,6 +56,7 @@ class UpdateNotifier(private val context: Context) {
             ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED)
 
     private fun ensureChannel() {
+        if (Build.VERSION.SDK_INT < 26) return // no channels before Android 8 (legacy flavor)
         val name = context.getString(R.string.update_channel_name)
         val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT)
         context.getSystemService(NotificationManager::class.java).createNotificationChannel(channel)

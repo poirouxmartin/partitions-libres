@@ -31,7 +31,7 @@ class PartitionsApp : Application() {
     val libraryStore by lazy { LibraryStore(File(filesDir, "library.json")) }
     val settingsStore by lazy { SettingsStore(SharedPrefsKeyValues(this)) }
     val updateChecker by lazy {
-        UpdateChecker(fetcher, SharedPrefsUpdatePrefs(this), System::currentTimeMillis, BuildConfig.VERSION_NAME, BuildConfig.UPDATE_REPO)
+        UpdateChecker(fetcher, SharedPrefsUpdatePrefs(this), System::currentTimeMillis, BuildConfig.VERSION_NAME, BuildConfig.UPDATE_REPO, BuildConfig.LEGACY)
     }
     val updateInstaller by lazy { UpdateInstaller(this, fetcher, updateChecker.apkUrlPrefix) }
 

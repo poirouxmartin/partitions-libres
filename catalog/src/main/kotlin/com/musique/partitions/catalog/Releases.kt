@@ -38,17 +38,21 @@ data class ReleaseInfo(
 )
 
 object ReleaseParser {
-    fun latest(json: String): ReleaseInfo? = try {
+    /** Marker in the asset name of the APK built for old devices (legacy flavor). */
+    const val LEGACY_MARKER = "legacy"
+
+    /** [legacy] selects the old-device APK of each release instead of the standard one. */
+    fun latest(json: String, legacy: Boolean = false): ReleaseInfo? = try {
         val root = Json.parseToJsonElement(json)
         val items = if (root is JsonArray) root.toList() else listOf(root)
-        items.mapNotNull(::toInfo).maxByOrNull { it.version }
+        items.mapNotNull { toInfo(it, legacy) }.maxByOrNull { it.version }
     } catch (e: Exception) {
         null
     }
 
     private fun str(o: JsonObject, key: String): String? = (o[key] as? JsonPrimitive)?.contentOrNull
 
-    private fun toInfo(e: JsonElement): ReleaseInfo? {
+    private fun toInfo(e: JsonElement, legacy: Boolean): ReleaseInfo? {
         val o = e as? JsonObject ?: return null
         if ((o["draft"] as? JsonPrimitive)?.booleanOrNull == true) return null
         if ((o["prerelease"] as? JsonPrimitive)?.booleanOrNull == true) return null
@@ -56,7 +60,10 @@ object ReleaseParser {
         val version = AppVersion.parse(tag) ?: return null
         val apk = (o["assets"] as? JsonArray)
             ?.mapNotNull { it as? JsonObject }
-            ?.firstOrNull { str(it, "name")?.endsWith(".apk", ignoreCase = true) == true }
+            ?.firstOrNull { a ->
+                val name = str(a, "name") ?: return@firstOrNull false
+                name.endsWith(".apk", ignoreCase = true) && name.contains(LEGACY_MARKER, ignoreCase = true) == legacy
+            }
             ?.let { str(it, "browser_download_url") }
             ?: return null
         return ReleaseInfo(tag, version, apk, str(o, "html_url") ?: "", str(o, "body") ?: "")

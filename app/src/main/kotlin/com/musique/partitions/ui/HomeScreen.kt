@@ -57,7 +57,6 @@ import com.musique.partitions.catalog.InstrumentFamily
 import com.musique.partitions.catalog.Piece
 import com.musique.partitions.catalog.ReleaseInfo
 import com.musique.partitions.data.Library
-import java.time.LocalDate
 
 @Composable
 fun HomeScreen(vm: MainViewModel) {
@@ -191,7 +190,7 @@ private fun UpdateBanner(info: ReleaseInfo, installing: Boolean, @StringRes mess
 private fun pieceOfTheDay(c: CatalogState.Ready): Piece? {
     val pieces = c.data.catalog.pieces
     if (pieces.isEmpty()) return null
-    return pieces[Math.floorMod(LocalDate.now().toEpochDay() * 7919L, pieces.size.toLong()).toInt()]
+    return pieces[Math.floorMod(localEpochDay() * 7919L, pieces.size.toLong()).toInt()]
 }
 
 @Composable
@@ -466,4 +465,10 @@ internal fun PieceRow(
         }
         StatusIcons(saved, favourite)
     }
+}
+
+/** Local calendar day number, like LocalDate.now().toEpochDay() but available below API 26. */
+private fun localEpochDay(): Long {
+    val now = System.currentTimeMillis()
+    return Math.floorDiv(now + java.util.TimeZone.getDefault().getOffset(now), 86_400_000L)
 }

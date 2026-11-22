@@ -20,7 +20,7 @@ android {
     ndkVersion = "27.1.12297006"
 
     defaultConfig {
-        minSdk = 29
+        minSdk = 24 // the app floor is set per flavor in :app
         ndk { abiFilters += vrvAbis }
         externalNativeBuild {
             cmake {
