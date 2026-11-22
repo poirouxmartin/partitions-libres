@@ -1,10 +1,9 @@
 package com.musique.partitions.data
 
 import java.io.File
+import java.io.IOException
 import java.io.InputStream
 import java.io.OutputStream
-import java.nio.file.Files
-import java.nio.file.StandardCopyOption
 
 /** Writes to a temporary sibling file, then renames it: [target] is never half-written. */
 fun writeAtomically(target: File, write: (OutputStream) -> Unit) {
@@ -12,9 +11,12 @@ fun writeAtomically(target: File, write: (OutputStream) -> Unit) {
     val tmp = File(target.absoluteFile.parentFile, target.name + ".tmp")
     try {
         tmp.outputStream().use(write)
-        // rename(2) replaces the target atomically on Android at every API level; Files.move
-        // (API 26) is only reached off-Android, e.g. JVM tests on Windows.
-        if (!tmp.renameTo(target)) @Suppress("NewApi") Files.move(tmp.toPath(), target.toPath(), StandardCopyOption.REPLACE_EXISTING)
+        // rename(2) replaces the target atomically on Android. No java.nio.file here: it does not
+        // exist before API 26 (the legacy flavor crashed on it). Delete-then-rename is the fallback.
+        if (!tmp.renameTo(target)) {
+            target.delete()
+            if (!tmp.renameTo(target)) throw IOException("Cannot move $tmp to $target")
+        }
     } finally {
         tmp.delete()
     }

@@ -29,8 +29,8 @@ android {
         applicationId = "com.musique.partitions"
         minSdk = 29
         targetSdk = 36
-        versionCode = 9
-        versionName = "0.8.0"
+        versionCode = 10
+        versionName = "0.8.1"
         ndk { abiFilters += vrvAbis }
         buildConfigField("String", "UPDATE_REPO", "\"$updateRepo\"")
     }
